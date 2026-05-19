@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Users, Settings } from 'lucide-react';
+import { Home, Users, Settings, ShoppingCart } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -12,6 +12,7 @@ function cn(...inputs: ClassValue[]) {
 
 const navItems = [
   { label: 'Главная', href: '/', icon: Home },
+  { label: 'Покупки', href: '/shopping', icon: ShoppingCart },
   { label: 'Семья', href: '/family', icon: Users },
   { label: 'Настройки', href: '/settings', icon: Settings },
 ];
