@@ -6,6 +6,7 @@ import { StoreTabs } from '@/components/shopping/StoreTabs';
 import { ShoppingItemCard } from '@/components/shopping/ShoppingItemCard';
 import { AddItemModal } from '@/components/shopping/AddItemModal';
 import { PriceInputModal } from '@/components/shopping/PriceInputModal';
+import { ShoppingListSkeleton } from '@/components/shopping/Skeletons';
 import { Plus, Trash2, BarChart3 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
@@ -122,44 +123,48 @@ export default function ShoppingPage() {
       <StoreTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
       <div className="px-6 mt-4 space-y-4">
-        <AnimatePresence mode="popLayout">
-          {filteredItems.regular.map(item => (
-            <ShoppingItemCard
-              key={item.id}
-              item={item}
-              onToggle={handleToggle}
-            />
-          ))}
+        {loading ? (
+          <ShoppingListSkeleton />
+        ) : (
+          <AnimatePresence mode="popLayout">
+            {filteredItems.regular.map(item => (
+              <ShoppingItemCard
+                key={item.id}
+                item={item}
+                onToggle={handleToggle}
+              />
+            ))}
 
-          {activeTab === 'ПЛАН' && filteredItems.marketplace.length > 0 && (
-            <motion.div layout className="py-4 flex items-center gap-4">
-              <div className="h-[1px] flex-1 bg-zinc-200 dark:bg-zinc-800" />
-              <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Маркетплейсы</span>
-              <div className="h-[1px] flex-1 bg-zinc-200 dark:bg-zinc-800" />
-            </motion.div>
-          )}
+            {activeTab === 'ПЛАН' && filteredItems.marketplace.length > 0 && (
+              <motion.div layout className="py-4 flex items-center gap-4">
+                <div className="h-[1px] flex-1 bg-zinc-200 dark:bg-zinc-800" />
+                <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Маркетплейсы</span>
+                <div className="h-[1px] flex-1 bg-zinc-200 dark:bg-zinc-800" />
+              </motion.div>
+            )}
 
-          {filteredItems.marketplace.map(item => (
-            <ShoppingItemCard
-              key={item.id}
-              item={item}
-              onToggle={handleToggle}
-              onOpenLink={(link) => window.open(link, '_blank')}
-            />
-          ))}
+            {filteredItems.marketplace.map(item => (
+              <ShoppingItemCard
+                key={item.id}
+                item={item}
+                onToggle={handleToggle}
+                onOpenLink={(link) => window.open(link, '_blank')}
+              />
+            ))}
 
-          {hasBoughtItems && (
-            <motion.div layout className="pt-8 pb-4">
-              <button
-                onClick={handleArchive}
-                className="w-full py-4 bg-zinc-100 dark:bg-zinc-900 text-red-500 font-bold rounded-2xl flex items-center justify-center gap-2 border border-zinc-200 dark:border-zinc-800 active:scale-95 transition-transform"
-              >
-                <Trash2 className="w-5 h-5" />
-                Удалить купленное
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            {hasBoughtItems && (
+              <motion.div layout className="pt-8 pb-4">
+                <button
+                  onClick={handleArchive}
+                  className="w-full py-4 bg-zinc-100 dark:bg-zinc-900 text-red-500 font-bold rounded-2xl flex items-center justify-center gap-2 border border-zinc-200 dark:border-zinc-800 active:scale-95 transition-transform"
+                >
+                  <Trash2 className="w-5 h-5" />
+                  Удалить купленное
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        )}
 
         {!loading && filteredItems.regular.length === 0 && filteredItems.marketplace.length === 0 && (
           <div className="text-center py-20 text-zinc-500">

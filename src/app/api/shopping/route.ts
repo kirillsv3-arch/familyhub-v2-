@@ -7,6 +7,7 @@ import { FieldValue } from "firebase-admin/firestore";
 export async function GET() {
   const { user } = await getUserWithFamily();
   if (!user || !user.familyId) {
+    console.error("Fetch shopping: Unauthorized or missing familyId", { userUid: user?.uid, familyId: user?.familyId });
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -25,8 +26,13 @@ export async function GET() {
     })) as ShoppingItem[];
 
     return NextResponse.json(items);
-  } catch (error) {
-    console.error("Fetch shopping items error:", error);
+  } catch (error: unknown) {
+    const err = error as { message?: string; code?: string; stack?: string };
+    console.error("Fetch shopping items error:", {
+      message: err.message,
+      code: err.code,
+      stack: err.stack
+    });
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
@@ -39,7 +45,7 @@ export async function POST(request: Request) {
 
   try {
     const data = await request.json();
-    const { name, quantity, store, isMarketplace, link } = data;
+    const { name, quantity, unit, store, isMarketplace, link } = data;
 
     if (!name || !store) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -47,7 +53,8 @@ export async function POST(request: Request) {
 
     const newItem = {
       name,
-      quantity: quantity || null,
+      quantity: typeof quantity === 'number' ? quantity : null,
+      unit: unit || null,
       store,
       isMarketplace: !!isMarketplace,
       link: link || null,

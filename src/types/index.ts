@@ -66,7 +66,8 @@ export const STORES: StoreType[] = [
 export interface ShoppingItem {
   id: string;
   name: string;
-  quantity?: string;
+  quantity?: number;
+  unit?: string;
   store: StoreType;
   isMarketplace: boolean;
   link?: string;

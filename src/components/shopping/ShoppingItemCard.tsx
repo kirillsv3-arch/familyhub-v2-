@@ -52,7 +52,7 @@ export function ShoppingItemCard({ item, onToggle, onOpenLink }: ShoppingItemCar
           )}
         </div>
         <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
-          {item.quantity && <span>{item.quantity}</span>}
+          {item.quantity && <span>{item.quantity} {item.unit}</span>}
           {item.quantity && <span>•</span>}
           <span>{item.store}</span>
           {item.price && (

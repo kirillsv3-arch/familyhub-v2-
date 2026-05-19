@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { PriceHistory } from '@/types';
 import { ChevronLeft, TrendingUp, ShoppingBag } from 'lucide-react';
+import { StatsSkeleton } from '@/components/shopping/Skeletons';
 import Link from 'next/link';
 import {
   LineChart,
@@ -67,7 +68,9 @@ export default function StatsPage() {
       </div>
 
       <div className="px-6 space-y-6">
-        {selectedItem ? (
+        {loading ? (
+          <StatsSkeleton />
+        ) : selectedItem ? (
           <div className="space-y-6">
             <div className="p-6 bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
               <div className="flex justify-between items-start mb-6">
