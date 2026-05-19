@@ -17,7 +17,7 @@ export default function FamilySetupPage() {
       const response = await fetch('/api/family/create', { method: 'POST' });
       if (response.ok) {
         router.refresh();
-        router.push('/');
+        window.location.href = '/';
       } else {
         const data = await response.json();
         setError(data.error || 'Ошибка при создании семьи');
@@ -48,7 +48,7 @@ export default function FamilySetupPage() {
 
       if (response.ok) {
         router.refresh();
-        router.push('/');
+        window.location.href = '/';
       } else {
         const data = await response.json();
         setError(data.error || 'Ошибка при входе в семью');
