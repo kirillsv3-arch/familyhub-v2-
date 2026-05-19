@@ -1,8 +1,41 @@
 import { adminAuth, adminDb } from "./firebase-admin";
 import { cookies } from "next/headers";
 import { User, Family } from "@/types";
+import * as admin from "firebase-admin";
 
-export async function verifyToken() {
+/**
+ * Utility to serialize Firestore data for Next.js Client Components.
+ * Converts Timestamps to ISO strings.
+ */
+function serializeData<T>(data: unknown): T {
+  if (!data || typeof data !== "object") return data as T;
+
+  if (data instanceof Date) {
+    return data.toISOString() as unknown as T;
+  }
+
+  if (Array.isArray(data)) {
+    return data.map((item) => serializeData(item)) as unknown as T;
+  }
+
+  const serialized = { ...(data as Record<string, unknown>) };
+
+  Object.keys(serialized).forEach((key) => {
+    const value = serialized[key];
+    if (value && typeof value === "object") {
+      const potentialTimestamp = value as { toDate?: () => Date };
+      if (typeof potentialTimestamp.toDate === "function") {
+        serialized[key] = potentialTimestamp.toDate().toISOString();
+      } else {
+        serialized[key] = serializeData(value);
+      }
+    }
+  });
+
+  return serialized as T;
+}
+
+export async function verifyToken(): Promise<admin.auth.DecodedIdToken | null> {
   const sessionCookie = cookies().get("session")?.value;
 
   if (!sessionCookie) {
@@ -18,7 +51,7 @@ export async function verifyToken() {
   }
 }
 
-export async function getUserWithFamily() {
+export async function getUserWithFamily(): Promise<{ user: User | null; family: Family | null }> {
   const decodedClaims = await verifyToken();
 
   if (!decodedClaims) {
@@ -34,27 +67,21 @@ export async function getUserWithFamily() {
   const data = userDoc.data();
   if (!data) return { user: null, family: null };
 
-  const userData = {
+  const userData = serializeData<User>({
     uid: userDoc.id,
     ...data,
-    createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString()
-  } as any;
+  });
 
-  let familyData: any = null;
+  let familyData: Family | null = null;
   if (userData.familyId) {
     const familyDoc = await adminDb.collection("families").doc(userData.familyId).get();
     if (familyDoc.exists) {
       const fData = familyDoc.data();
       if (fData) {
-        familyData = {
+        familyData = serializeData<Family>({
           id: familyDoc.id,
           ...fData,
-          createdAt: fData.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
-          tamagotchi: {
-            ...fData.tamagotchi,
-            lastChecked: fData.tamagotchi?.lastChecked?.toDate?.()?.toISOString() || new Date().toISOString()
-          }
-        };
+        });
       }
     }
   }

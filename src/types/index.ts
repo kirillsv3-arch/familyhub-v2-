@@ -13,7 +13,7 @@ export interface User {
   fatsGoal: number;
   carbsGoal: number;
   goalType: 'maintenance' | 'cutting' | 'bulking';
-  createdAt: Timestamp | Date;
+  createdAt: Timestamp | Date | string;
 }
 
 export interface Tamagotchi {
@@ -22,7 +22,7 @@ export interface Tamagotchi {
   energy: number;
   xp: number;
   level: number;
-  lastChecked: Timestamp | Date;
+  lastChecked: Timestamp | Date | string;
   items: string[];
 }
 
@@ -30,7 +30,7 @@ export interface Family {
   id: string;
   code: string; // 6 characters
   memberIds: string[];
-  createdAt: Timestamp | Date;
+  createdAt: Timestamp | Date | string;
   coins: number;
   tamagotchi: Tamagotchi;
 }
