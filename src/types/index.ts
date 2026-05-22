@@ -74,8 +74,8 @@ export interface ShoppingItem {
   isBought: boolean;
   price?: number;
   addedBy: string;
-  createdAt: Timestamp | Date | string;
-  boughtAt?: Timestamp | Date | string;
+  createdAt: Timestamp | Date | string | unknown;
+  boughtAt?: Timestamp | Date | string | unknown;
   archived?: boolean;
 }
 

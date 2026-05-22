@@ -57,7 +57,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Магазин обязателен" }, { status: 400 });
     }
 
-    const newItem: Partial<ShoppingItem> & { createdAt: FieldValue } = {
+    const newItem: Partial<ShoppingItem> = {
       name: name.trim(),
       store: store as StoreType,
       isMarketplace: !!isMarketplace,
