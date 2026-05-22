@@ -61,6 +61,7 @@ export async function getUserWithFamily(): Promise<{ user: User | null; family: 
   const userDoc = await adminDb.collection("users").doc(decodedClaims.uid).get();
 
   if (!userDoc.exists) {
+    console.error(`User document not found for uid: ${decodedClaims.uid}`);
     return { user: null, family: null };
   }
 
@@ -83,7 +84,11 @@ export async function getUserWithFamily(): Promise<{ user: User | null; family: 
           ...fData,
         });
       }
+    } else {
+      console.error(`Family document not found for familyId: ${userData.familyId}`);
     }
+  } else {
+    console.warn(`User ${userData.uid} has no familyId`);
   }
 
   return { user: userData, family: familyData };

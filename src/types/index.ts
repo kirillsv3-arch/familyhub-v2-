@@ -50,6 +50,54 @@ export interface UserHabits {
   habits: Habit[];
 }
 
+export type StoreType = 'ПЛАН' | 'Лента' | 'Магнит' | 'Самокат' | 'Лавка' | 'Аптека' | 'Другое' | 'Маркетплейсы';
+
+export const STORES: StoreType[] = [
+  'ПЛАН',
+  'Лента',
+  'Магнит',
+  'Самокат',
+  'Лавка',
+  'Аптека',
+  'Другое',
+  'Маркетплейсы'
+];
+
+export interface ShoppingItem {
+  id: string;
+  name: string;
+  quantity?: number;
+  unit?: string;
+  store: StoreType;
+  isMarketplace: boolean;
+  link?: string;
+  isBought: boolean;
+  price?: number;
+  addedBy: string;
+  createdAt: Timestamp | Date | string;
+  boughtAt?: Timestamp | Date | string;
+  archived?: boolean;
+}
+
+export interface PriceHistory {
+  id: string;
+  name: string;
+  store: StoreType;
+  price: number;
+  date: Timestamp | Date | string;
+  userId: string;
+}
+
+export interface Transaction {
+  id: string;
+  amount: number;
+  category: string;
+  description: string;
+  date: Timestamp | Date | string;
+  userId: string;
+  type: 'expense' | 'income';
+}
+
 // Default values as per requirements
 export const DEFAULT_USER_GOALS = {
   caloriesGoal: 2000,
