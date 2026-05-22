@@ -98,6 +98,18 @@ export interface Transaction {
   type: 'expense' | 'income';
 }
 
+export type WishlistPriority = 'idea' | 'someday' | 'want' | 'urgent';
+
+export interface WishlistItem {
+  id: string;
+  name: string;
+  link?: string;
+  price?: number;
+  priority: WishlistPriority;
+  ownerId: string;
+  createdAt: Timestamp | Date | string;
+}
+
 // Default values as per requirements
 export const DEFAULT_USER_GOALS = {
   caloriesGoal: 2000,
