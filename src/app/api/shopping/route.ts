@@ -51,13 +51,14 @@ export async function POST(request: Request) {
 
     // Strict validation
     if (!name || typeof name !== 'string') {
-      return NextResponse.json({ error: "Название товара обязательно и должно быть строкой" }, { status: 400 });
+      return NextResponse.json({ error: "Название товара обязательно" }, { status: 400 });
     }
     if (!store || typeof store !== 'string') {
       return NextResponse.json({ error: "Магазин обязателен" }, { status: 400 });
     }
 
-    const newItem: Omit<ShoppingItem, 'id'> = {
+    // Prepare new item with defaults
+    const newItem: Partial<ShoppingItem> & { createdAt: FieldValue } = {
       name: name.trim(),
       store: store as StoreType,
       isMarketplace: !!isMarketplace,
@@ -67,21 +68,14 @@ export async function POST(request: Request) {
       createdAt: FieldValue.serverTimestamp(),
     };
 
-    if (typeof quantity === 'number') {
-      newItem.quantity = quantity;
+    // Marketplace logic
+    if (isMarketplace) {
+      newItem.link = link || null;
+      newItem.quantity = undefined;
+      newItem.unit = undefined;
     } else {
-      newItem.quantity = null;
-    }
-
-    if (unit && typeof unit === 'string') {
-      newItem.unit = unit;
-    } else {
-      newItem.unit = null;
-    }
-
-    if (link && typeof link === 'string') {
-      newItem.link = link;
-    } else {
+      newItem.quantity = typeof quantity === 'number' ? quantity : 1;
+      newItem.unit = typeof unit === 'string' ? unit : 'шт';
       newItem.link = null;
     }
 
@@ -92,8 +86,13 @@ export async function POST(request: Request) {
       .add(newItem);
 
     return NextResponse.json({ id: docRef.id, ...newItem });
-  } catch (error) {
-    console.error("Create shopping item error:", error);
+  } catch (error: unknown) {
+    const err = error as { message?: string; code?: string; stack?: string };
+    console.error("Create shopping item error:", {
+      message: err.message,
+      code: err.code,
+      stack: err.stack
+    });
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

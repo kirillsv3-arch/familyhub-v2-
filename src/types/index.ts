@@ -66,16 +66,16 @@ export const STORES: StoreType[] = [
 export interface ShoppingItem {
   id: string;
   name: string;
-  quantity: number | null;
-  unit: string | null;
+  quantity?: number;
+  unit?: string;
   store: StoreType;
   isMarketplace: boolean;
-  link: string | null;
+  link?: string | null;
   isBought: boolean;
   price?: number;
   addedBy: string;
-  createdAt: Timestamp | Date | string | unknown;
-  boughtAt?: Timestamp | Date | string | unknown;
+  createdAt: unknown;
+  boughtAt?: unknown;
   archived?: boolean;
 }
 
@@ -84,7 +84,7 @@ export interface PriceHistory {
   name: string;
   store: StoreType;
   price: number;
-  date: Timestamp | Date | string;
+  date: unknown;
   userId: string;
 }
 
@@ -93,7 +93,7 @@ export interface Transaction {
   amount: number;
   category: string;
   description: string;
-  date: Timestamp | Date | string;
+  date: unknown;
   userId: string;
   type: 'expense' | 'income';
 }
