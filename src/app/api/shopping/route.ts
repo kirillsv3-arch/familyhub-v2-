@@ -4,6 +4,8 @@ import { getUserWithFamily } from "@/lib/auth-server";
 import { ShoppingItem, StoreType } from "@/types";
 import { FieldValue } from "firebase-admin/firestore";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   const { user } = await getUserWithFamily();
   if (!user || !user.familyId) {
@@ -20,10 +22,15 @@ export async function GET() {
       .orderBy("createdAt", "desc")
       .get();
 
-    const items = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    })) as ShoppingItem[];
+    const items = snapshot.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        createdAt: data.createdAt?.toDate?.() ? data.createdAt.toDate().toISOString() : data.createdAt,
+        boughtAt: data.boughtAt?.toDate?.() ? data.boughtAt.toDate().toISOString() : data.boughtAt,
+      };
+    }) as ShoppingItem[];
 
     return NextResponse.json(items);
   } catch (error: unknown) {
@@ -45,11 +52,8 @@ export async function POST(request: Request) {
 
   try {
     const data = await request.json();
-    console.log("Create shopping request body:", data);
-
     const { name, quantity, unit, store, isMarketplace, link } = data;
 
-    // Strict validation
     if (!name || typeof name !== 'string') {
       return NextResponse.json({ error: "Название товара обязательно" }, { status: 400 });
     }
@@ -57,7 +61,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Магазин обязателен" }, { status: 400 });
     }
 
-    // Prepare new item with defaults
     const newItem: Partial<ShoppingItem> & { createdAt: FieldValue } = {
       name: name.trim(),
       store: store as StoreType,
@@ -68,11 +71,8 @@ export async function POST(request: Request) {
       createdAt: FieldValue.serverTimestamp(),
     };
 
-    // Marketplace logic
     if (isMarketplace) {
       newItem.link = link || null;
-      newItem.quantity = undefined;
-      newItem.unit = undefined;
     } else {
       newItem.quantity = typeof quantity === 'number' ? quantity : 1;
       newItem.unit = typeof unit === 'string' ? unit : 'шт';
@@ -85,14 +85,14 @@ export async function POST(request: Request) {
       .collection("shopping")
       .add(newItem);
 
-    return NextResponse.json({ id: docRef.id, ...newItem });
+    return NextResponse.json({
+      id: docRef.id,
+      ...newItem,
+      createdAt: new Date().toISOString()
+    });
   } catch (error: unknown) {
     const err = error as { message?: string; code?: string; stack?: string };
-    console.error("Create shopping item error:", {
-      message: err.message,
-      code: err.code,
-      stack: err.stack
-    });
+    console.error("Create shopping item error:", err);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

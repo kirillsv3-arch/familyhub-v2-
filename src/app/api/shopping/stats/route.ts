@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { getUserWithFamily } from "@/lib/auth-server";
 import * as admin from "firebase-admin";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request) {
   const { user } = await getUserWithFamily();
   if (!user || !user.familyId) {
@@ -33,7 +35,6 @@ export async function GET(request: Request) {
       return {
         id: doc.id,
         ...data,
-        // Ensure date is serialized
         date: data.date?.toDate?.() ? data.date.toDate().toISOString() : data.date
       };
     });
