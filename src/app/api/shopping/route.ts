@@ -1,7 +1,7 @@
 import { adminDb } from "@/lib/firebase-admin";
 import { NextResponse } from "next/server";
 import { getUserWithFamily } from "@/lib/auth-server";
-import { ShoppingItem } from "@/types";
+import { ShoppingItem, StoreType } from "@/types";
 import { FieldValue } from "firebase-admin/firestore";
 
 export async function GET() {
@@ -59,7 +59,7 @@ export async function POST(request: Request) {
 
     const newItem: Partial<ShoppingItem> & { createdAt: FieldValue } = {
       name: name.trim(),
-      store: store,
+      store: store as StoreType,
       isMarketplace: !!isMarketplace,
       isBought: false,
       addedBy: user.uid,
