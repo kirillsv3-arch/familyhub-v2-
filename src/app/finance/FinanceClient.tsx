@@ -40,10 +40,11 @@ export default function FinanceClient({
     const horizon = new Date();
     horizon.setDate(today.getDate() + 45);
 
-    const occurrences: (FinanceEvent & { date: string; isTemplate: boolean })[] = [];
+    const occurrences: (FinanceEvent & { date: string; isTemplate: boolean; userName?: string })[] = [];
 
     events.forEach(event => {
       const dValue = Array.isArray(event.dateValue) ? event.dateValue : [event.dateValue];
+      const userName = members.find(m => m.uid === event.userId)?.name;
 
       // Basic expansion logic
       if (event.dateType === 'dayOfMonth') {
@@ -58,7 +59,7 @@ export default function FinanceClient({
             if (day <= daysInMonth) {
               const date = new Date(d.getFullYear(), d.getMonth(), day);
               if (date >= today && date <= horizon) {
-                occurrences.push({ ...event, date: date.toISOString(), isTemplate: true });
+                occurrences.push({ ...event, date: date.toISOString(), isTemplate: true, userName });
               }
             }
           });
@@ -67,7 +68,7 @@ export default function FinanceClient({
          const d = new Date(today);
          while (d <= horizon) {
            if (dValue.includes(d.getDay())) {
-             occurrences.push({ ...event, date: new Date(d).toISOString(), isTemplate: true });
+             occurrences.push({ ...event, date: new Date(d).toISOString(), isTemplate: true, userName });
            }
            d.setDate(d.getDate() + 1);
          }
@@ -85,7 +86,7 @@ export default function FinanceClient({
                   count++;
                   if (count === nth) {
                      if (d >= today && d <= horizon) {
-                        occurrences.push({ ...event, date: d.toISOString(), isTemplate: true });
+                        occurrences.push({ ...event, date: d.toISOString(), isTemplate: true, userName });
                      }
                      break;
                   }
@@ -97,7 +98,7 @@ export default function FinanceClient({
     });
 
     return occurrences.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  }, [events]);
+  }, [events, members]);
 
   // Fallback notification trigger (client-side)
   useEffect(() => {

@@ -36,7 +36,7 @@ export function HorizonRibbon({ events }: HorizonRibbonProps) {
     <div className="relative">
       <div
         ref={scrollRef}
-        className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-6 px-6"
+        className="flex gap-4 overflow-x-auto pb-4 -mx-6 px-6 scrollbar-hide"
         style={{ scrollSnapType: 'x mandatory' }}
       >
         {days.map((day, i) => {

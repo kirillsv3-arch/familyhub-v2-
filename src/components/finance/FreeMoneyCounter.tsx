@@ -18,10 +18,10 @@ export function FreeMoneyCounter({ events, history }: FreeMoneyCounterProps) {
     const monthlyIncome = events
       .filter(e => e.type === 'income')
       .reduce((acc, e) => {
+        const dValue = Array.isArray(e.dateValue) ? e.dateValue : [e.dateValue];
         if (e.dateType === 'dayOfMonth') {
-          return acc + (e.amount || 0) * e.dateValue.length;
+          return acc + (e.amount || 0) * dValue.length;
         }
-        // Simplified for weekly: average 4 weeks
         if (e.dateType === 'dayOfWeek') {
           return acc + (e.amount || 0) * 4;
         }
@@ -32,8 +32,9 @@ export function FreeMoneyCounter({ events, history }: FreeMoneyCounterProps) {
     const mandatoryExpenses = events
       .filter(e => e.type === 'expense' || e.type === 'subscription')
       .reduce((acc, e) => {
+        const dValue = Array.isArray(e.dateValue) ? e.dateValue : [e.dateValue];
         if (e.dateType === 'dayOfMonth') {
-          return acc + (e.amount || 0) * e.dateValue.length;
+          return acc + (e.amount || 0) * dValue.length;
         }
         if (e.dateType === 'dayOfWeek') {
           return acc + (e.amount || 0) * 4;
@@ -47,8 +48,15 @@ export function FreeMoneyCounter({ events, history }: FreeMoneyCounterProps) {
       .filter(h => h.type === 'shopping' && new Date(h.date as string) >= startOfMonth)
       .reduce((acc, h) => acc + h.amount, 0);
 
-    return monthlyIncome - mandatoryExpenses - actualShopping;
+    const result = monthlyIncome - mandatoryExpenses - actualShopping;
+    return isNaN(result) ? 0 : result;
   }, [events, history]);
+
+  const monthNamesGenitive = [
+    'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+    'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
+  ];
+  const currentMonthName = monthNamesGenitive[new Date().getMonth()];
 
   return (
     <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-8 border border-zinc-100 dark:border-zinc-800 shadow-sm relative overflow-hidden">
@@ -61,18 +69,17 @@ export function FreeMoneyCounter({ events, history }: FreeMoneyCounterProps) {
         </div>
 
         <div className="flex items-baseline gap-2">
-          <span className="text-5xl font-black">{freeMoney.toLocaleString('ru-RU')}</span>
+          <span className="text-5xl font-black">{(freeMoney || 0).toLocaleString('ru-RU')}</span>
           <span className="text-2xl font-bold text-zinc-400">₽</span>
         </div>
 
         <p className="mt-4 text-sm text-zinc-400 font-medium">
-          До конца {new Date().toLocaleString('ru-RU', { month: 'long' })} осталось {
-            Math.ceil((new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+          До конца {currentMonthName} осталось {
+            Math.max(0, Math.ceil((new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))
           } дней
         </p>
       </div>
 
-      {/* Decorative blobs */}
       <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-brand-violet/5 rounded-full blur-3xl" />
       <div className="absolute -right-4 top-4 w-20 h-20 bg-brand-emerald/5 rounded-full blur-2xl" />
     </div>

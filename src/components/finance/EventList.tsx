@@ -6,7 +6,7 @@ import { ShoppingCart, CreditCard, ArrowDownCircle, ArrowUpCircle, ChevronDown, 
 import { FinanceEvent } from '@/types';
 
 interface EventListProps {
-  events: (FinanceEvent & { date: string })[];
+  events: (FinanceEvent & { date: string; userName?: string })[];
   onShoppingClick: (event: FinanceEvent & { date: string }) => void;
   onRefresh: () => void;
 }
@@ -62,8 +62,15 @@ export function EventList({ events, onShoppingClick, onRefresh }: EventListProps
                 {getIcon(event.type, event.category)}
               </div>
 
-              <div className="flex-1">
-                <h3 className="font-bold text-zinc-800 dark:text-zinc-200">{event.name}</h3>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <h3 className="font-bold text-zinc-800 dark:text-zinc-200 truncate">{event.name}</h3>
+                  {event.userId !== 'family' && (
+                    <span className="px-1.5 py-0.5 bg-zinc-100 dark:bg-zinc-800 text-[9px] font-black text-zinc-500 uppercase rounded-md flex-shrink-0">
+                      {event.userName || 'Участник'}
+                    </span>
+                  )}
+                </div>
                 <p className="text-xs font-medium text-zinc-500 uppercase tracking-tight">
                   {isToday ? 'Сегодня' : date.toLocaleString('ru-RU', { day: 'numeric', month: 'long' })}
                 </p>
@@ -77,9 +84,6 @@ export function EventList({ events, onShoppingClick, onRefresh }: EventListProps
                     <span className={`font-black ${event.type === 'income' ? 'text-brand-emerald' : 'text-zinc-800 dark:text-zinc-100'}`}>
                       {event.type === 'income' ? '+' : ''}{event.amount?.toLocaleString('ru-RU')} ₽
                     </span>
-                    {event.userId !== 'family' && (
-                       <span className="text-[10px] font-bold text-zinc-400 uppercase">👤</span>
-                    )}
                   </div>
                 )}
 
