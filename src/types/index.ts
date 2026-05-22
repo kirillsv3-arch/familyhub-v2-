@@ -98,6 +98,36 @@ export interface Transaction {
   type: 'expense' | 'income';
 }
 
+export type WishType = 'material' | 'non-material';
+
+export interface WishlistItem {
+  id: string;
+  authorId: string;
+  title: string;
+  type: WishType;
+  imageUrl?: string;
+  price?: number;
+  link?: string;
+  note?: string;
+  isCompleted: boolean;
+  completedBy?: string;
+  completedAt?: Timestamp | Date | string;
+  linkedSavingGoalId?: string;
+  createdAt: Timestamp | Date | string;
+  reservedBy?: string | null;
+  reservedAt?: Timestamp | Date | string | null;
+}
+
+export interface SavingGoal {
+  id: string;
+  title: string;
+  targetAmount: number;
+  currentAmount: number;
+  desiredDate?: string;
+  createdAt: Timestamp | Date | string;
+  createdBy: string;
+}
+
 // Default values as per requirements
 export const DEFAULT_USER_GOALS = {
   caloriesGoal: 2000,

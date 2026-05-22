@@ -1,0 +1,67 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper to check if user is logged in
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Helper to get user data
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    // Helper to check if user belongs to a family
+    function isMemberOfFamily(familyId) {
+      return isSignedIn() && getUserData().familyId == familyId;
+    }
+
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow write: if request.auth.uid == userId;
+    }
+
+    match /families/{familyId} {
+      allow read: if isMemberOfFamily(familyId);
+      allow write: if isMemberOfFamily(familyId);
+
+      match /wishlist/{wishId} {
+        allow read: if isMemberOfFamily(familyId);
+        allow create: if isMemberOfFamily(familyId) && request.resource.data.authorId == request.auth.uid;
+
+        // Granular update rules
+        allow update: if isMemberOfFamily(familyId) && (
+          // Owner can update anything
+          (resource.data.authorId == request.auth.uid) ||
+          // Others can only update specific fields
+          (
+            request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['isCompleted', 'completedBy', 'completedAt', 'reservedBy', 'reservedAt'])
+          )
+        );
+
+        allow delete: if isMemberOfFamily(familyId) && resource.data.authorId == request.auth.uid;
+      }
+
+      match /shopping/{itemId} {
+        allow read, write: if isMemberOfFamily(familyId);
+      }
+
+      match /price_history/{id} {
+        allow read, write: if isMemberOfFamily(familyId);
+      }
+
+      match /transactions/{id} {
+        allow read, write: if isMemberOfFamily(familyId);
+      }
+
+      match /saving_goals/{id} {
+        allow read, write: if isMemberOfFamily(familyId);
+      }
+
+      match /habits/{uid} {
+        allow read, write: if isMemberOfFamily(familyId);
+      }
+    }
+  }
+}

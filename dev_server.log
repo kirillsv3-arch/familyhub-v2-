@@ -1,0 +1,27 @@
+
+> familyhub@0.1.0 dev
+> next dev
+
+  ▲ Next.js 14.2.16
+  - Local:        http://localhost:3000
+
+ ✓ Starting...
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+ ✓ Ready in 1847ms
+ ○ Compiling /src/middleware ...
+ ✓ Compiled /src/middleware in 782ms (115 modules)
+ ○ Compiling /auth ...
+ ✓ Compiled /auth in 13.2s (963 modules)
+ ⨯ FirebaseError: Firebase: Error (auth/invalid-api-key).
+    at eval (./src/lib/firebase.ts:22:68)
+    at (ssr)/./src/lib/firebase.ts (/app/.next/server/app/(auth)/auth/page.js:334:1)
+    at __webpack_require__ (/app/.next/server/webpack-runtime.js:33:43)
+    at eval (auth/page.tsx:11:71)
+    at (ssr)/./src/app/(auth)/auth/page.tsx (/app/.next/server/app/(auth)/auth/page.js:290:1)
+    at Object.__webpack_require__ [as require] (/app/.next/server/webpack-runtime.js:33:43)
+digest: "2815283778"
+ GET /auth 500 in 14332ms
