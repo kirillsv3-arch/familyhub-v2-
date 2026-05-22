@@ -33,12 +33,11 @@ export default async function HomePage() {
     },
     {
       title: "Бюджет",
-      subtitle: "Скоро",
-      href: "#",
+      subtitle: "Ваш горизонт",
+      href: "/finance",
       icon: TrendingUp,
-      color: "bg-zinc-500",
+      color: "bg-brand-violet",
       size: "col-span-1",
-      disabled: true,
     },
     {
       title: "Здоровье",

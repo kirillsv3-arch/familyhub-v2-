@@ -88,6 +88,45 @@ export interface PriceHistory {
   userId: string;
 }
 
+export type FinanceEventType = 'income' | 'expense' | 'subscription' | 'shopping';
+
+export interface FinanceEvent {
+  id: string;
+  type: FinanceEventType;
+  category?: 'loan' | string;
+  name: string;
+  amount?: number;
+  dateType: 'dayOfMonth' | 'dayOfWeek' | 'specificDates' | 'nthDayOfWeek';
+  dateValue: number[]; // days of month 1-31, days of week 0-6, timestamps, or [nth, dayOfWeek]
+  recurring: boolean;
+  userId: string | 'family';
+  createdAt: Timestamp | Date | string;
+  reminderEnabled?: boolean;
+  reminderDaysBefore?: number;
+}
+
+export interface FinanceHistory {
+  id: string;
+  eventId?: string;
+  type: FinanceEventType;
+  amount: number;
+  date: Timestamp | Date | string;
+  userId: string;
+  note?: string;
+}
+
+export interface SavingGoal {
+  id: string;
+  name: string;
+  targetAmount: number;
+  currentAmount: number;
+  deadline?: string;
+  wishlistItemId?: string;
+  userId: string;
+  isArchived: boolean;
+  createdAt: Timestamp | Date | string;
+}
+
 export interface Transaction {
   id: string;
   amount: number;
