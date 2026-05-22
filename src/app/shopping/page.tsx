@@ -34,7 +34,14 @@ export default function ShoppingPage() {
     }
   };
 
-  const handleAdd = async (itemData: { name: string; quantity: string | null; store: StoreType; isMarketplace: boolean; link: string | null }) => {
+  const handleAdd = async (itemData: {
+    name: string;
+    quantity: number | null;
+    unit: string | null;
+    store: StoreType;
+    isMarketplace: boolean;
+    link: string | null
+  }) => {
     const res = await fetch('/api/shopping', {
       method: 'POST',
       body: JSON.stringify(itemData),
