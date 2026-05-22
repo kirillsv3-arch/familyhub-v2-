@@ -3,6 +3,8 @@
 import { SavingGoal } from '@/types';
 import { motion } from 'framer-motion';
 import { Target, Plus } from 'lucide-react';
+import { useState } from 'react';
+import { DepositModal } from './DepositModal';
 
 interface SavingsGalleryProps {
   goals: SavingGoal[];
@@ -10,6 +12,7 @@ interface SavingsGalleryProps {
 }
 
 export function SavingsGallery({ goals, onRefresh }: SavingsGalleryProps) {
+  const [selectedGoal, setSelectedGoal] = useState<SavingGoal | null>(null);
   const isGallery = goals.length > 2;
 
   if (goals.length === 0) {
@@ -24,69 +27,68 @@ export function SavingsGallery({ goals, onRefresh }: SavingsGalleryProps) {
   }
 
   return (
-    <div className={isGallery ? "flex gap-4 overflow-x-auto pb-4 -mx-6 px-6 scrollbar-hide" : "space-y-4"}>
-      {goals.map((goal) => (
-        <SavingGoalCard key={goal.id} goal={goal} isCompact={isGallery} onRefresh={onRefresh} />
-      ))}
-    </div>
+    <>
+      <div className={isGallery ? "flex gap-4 overflow-x-auto pb-4 -mx-6 px-6 scrollbar-hide" : "space-y-4"}>
+        {goals.map((goal) => (
+          <SavingGoalCard key={goal.id} goal={goal} isCompact={isGallery} onDeposit={() => setSelectedGoal(goal)} />
+        ))}
+      </div>
+
+      {selectedGoal && (
+        <DepositModal
+          goal={selectedGoal}
+          onClose={() => setSelectedGoal(null)}
+          onSuccess={() => {
+            onRefresh();
+            setSelectedGoal(null);
+          }}
+        />
+      )}
+    </>
   );
 }
 
-function SavingGoalCard({ goal, isCompact, onRefresh }: { goal: SavingGoal, isCompact: boolean, onRefresh: () => void }) {
+function SavingGoalCard({ goal, isCompact, onDeposit }: { goal: SavingGoal, isCompact: boolean, onDeposit: () => void }) {
   const progress = Math.min(100, (goal.currentAmount / goal.targetAmount) * 100);
-
-  const handleDeposit = async () => {
-    const amountStr = prompt('Сколько хотите отложить?');
-    if (!amountStr) return;
-    const amount = parseFloat(amountStr);
-    if (isNaN(amount) || amount <= 0) return;
-
-    try {
-      const res = await fetch(`/api/finance/savings/${goal.id}/deposit`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount }),
-      });
-      if (res.ok) onRefresh();
-    } catch (e) {
-      console.error(e);
-    }
-  };
 
   return (
     <motion.div
       layout
-      className={`bg-white dark:bg-zinc-900 rounded-[2rem] p-6 border border-zinc-100 dark:border-zinc-800 shadow-sm flex-shrink-0 ${isCompact ? 'w-[280px]' : 'w-full'}`}
+      className={`bg-white dark:bg-zinc-900 rounded-[2.5rem] p-8 border border-zinc-100 dark:border-zinc-800 shadow-sm flex-shrink-0 transition-all ${isCompact ? 'w-[300px]' : 'w-full'}`}
     >
-      <div className="flex justify-between items-start mb-4">
-        <div>
-          <h3 className="font-black text-xl leading-tight mb-1">{goal.name}</h3>
-          <p className="text-zinc-500 font-bold text-sm">
-            {goal.currentAmount.toLocaleString('ru-RU')} / {goal.targetAmount.toLocaleString('ru-RU')} ₽
-          </p>
+      <div className="flex justify-between items-start mb-6">
+        <div className="min-w-0">
+          <h3 className="font-black text-2xl leading-tight mb-1 truncate">{goal.name}</h3>
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-brand-violet font-black text-lg">{goal.currentAmount.toLocaleString('ru-RU')}</span>
+            <span className="text-zinc-400 font-bold text-xs uppercase tracking-widest">из {goal.targetAmount.toLocaleString('ru-RU')} ₽</span>
+          </div>
         </div>
         <button
-          onClick={handleDeposit}
-          className="w-10 h-10 bg-brand-violet/10 text-brand-violet rounded-xl flex items-center justify-center"
+          onClick={onDeposit}
+          className="w-12 h-12 bg-brand-violet text-white rounded-2xl flex items-center justify-center shadow-lg shadow-brand-violet/20 active:scale-90 transition-transform"
         >
           <Plus className="w-6 h-6" />
         </button>
       </div>
 
-      <div className="space-y-3">
-        <div className="h-3 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+      <div className="space-y-4">
+        <div className="h-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-full p-1 border border-zinc-100 dark:border-zinc-800 shadow-inner">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
-            className="h-full bg-brand-violet"
+            className="h-full bg-gradient-to-r from-brand-violet to-violet-400 rounded-full shadow-[0_0_12px_rgba(139,92,246,0.4)]"
           />
         </div>
 
-        {goal.deadline && (
-          <p className="text-[11px] font-bold text-brand-violet uppercase bg-brand-violet/5 px-3 py-1 rounded-lg w-fit">
-            Нужно {Math.ceil((goal.targetAmount - goal.currentAmount) / 2).toLocaleString('ru-RU')} ₽ в месяц
-          </p>
-        )}
+        <div className="flex justify-between items-center">
+           <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">{Math.round(progress)}% собрано</span>
+           {goal.deadline && (
+             <p className="text-[10px] font-black text-brand-emerald uppercase tracking-widest bg-brand-emerald/5 px-2 py-1 rounded-lg">
+               По {Math.ceil((goal.targetAmount - goal.currentAmount) / 2).toLocaleString('ru-RU')} ₽ / мес
+             </p>
+           )}
+        </div>
       </div>
     </motion.div>
   );

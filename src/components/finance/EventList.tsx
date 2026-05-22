@@ -53,43 +53,47 @@ export function EventList({ events, onShoppingClick, onRefresh }: EventListProps
             <motion.div
               key={`${event.id}-${event.date}`}
               layout
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-white dark:bg-zinc-900 rounded-3xl p-4 flex items-center gap-4 border border-zinc-100 dark:border-zinc-800"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-white dark:bg-zinc-900 rounded-[2rem] p-5 flex items-center gap-4 border border-zinc-100 dark:border-zinc-800 shadow-sm group active:scale-[0.98] transition-all"
               onClick={() => event.type === 'shopping' && onShoppingClick(event)}
             >
-              <div className={`w-12 h-12 rounded-2xl ${getBgColor(event.type, event.category)} flex items-center justify-center`}>
+              <div className={`w-14 h-14 rounded-2xl ${getBgColor(event.type, event.category)} flex items-center justify-center shadow-inner`}>
                 {getIcon(event.type, event.category)}
               </div>
 
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5">
-                  <h3 className="font-bold text-zinc-800 dark:text-zinc-200 truncate">{event.name}</h3>
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="font-black text-zinc-900 dark:text-zinc-100 truncate tracking-tight">{event.name}</h3>
                   {event.userId !== 'family' && (
-                    <span className="px-1.5 py-0.5 bg-zinc-100 dark:bg-zinc-800 text-[9px] font-black text-zinc-500 uppercase rounded-md flex-shrink-0">
+                    <div className="px-2 py-0.5 bg-brand-violet/10 text-[8px] font-black text-brand-violet uppercase rounded-full tracking-widest border border-brand-violet/10">
                       {event.userName || 'Участник'}
-                    </span>
+                    </div>
                   )}
                 </div>
-                <p className="text-xs font-medium text-zinc-500 uppercase tracking-tight">
-                  {isToday ? 'Сегодня' : date.toLocaleString('ru-RU', { day: 'numeric', month: 'long' })}
+                <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
+                  {isToday ? (
+                     <span className="text-brand-violet">Сегодня</span>
+                  ) : date.toLocaleString('ru-RU', { day: 'numeric', month: 'long' })}
                 </p>
               </div>
 
-              <div className="text-right flex flex-col items-end gap-2">
-                {event.type === 'shopping' ? (
-                  <span className="text-xs font-bold text-zinc-400 uppercase">Ввести чек</span>
-                ) : (
-                  <div className="flex flex-col items-end">
-                    <span className={`font-black ${event.type === 'income' ? 'text-brand-emerald' : 'text-zinc-800 dark:text-zinc-100'}`}>
-                      {event.type === 'income' ? '+' : ''}{event.amount?.toLocaleString('ru-RU')} ₽
+              <div className="flex items-center gap-3">
+                <div className="text-right">
+                  {event.type === 'shopping' ? (
+                    <button className="px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-xl text-[10px] font-black uppercase tracking-wider text-zinc-500 hover:bg-brand-violet hover:text-white transition-colors">
+                      Ввести чек
+                    </button>
+                  ) : (
+                    <span className={`text-lg font-black tracking-tighter ${event.type === 'income' ? 'text-brand-emerald' : 'text-zinc-900 dark:text-zinc-100'}`}>
+                      {event.type === 'income' ? '+' : ''}{event.amount?.toLocaleString('ru-RU')} <span className="text-sm font-bold opacity-30">₽</span>
                     </span>
-                  </div>
-                )}
+                  )}
+                </div>
 
                 <button
                   onClick={(e) => handleDelete(e, event.id)}
-                  className="p-1.5 text-zinc-300 hover:text-red-400 transition-colors"
+                  className="w-8 h-8 rounded-xl flex items-center justify-center text-zinc-200 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>

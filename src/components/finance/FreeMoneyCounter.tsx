@@ -58,30 +58,46 @@ export function FreeMoneyCounter({ events, history }: FreeMoneyCounterProps) {
   ];
   const currentMonthName = monthNamesGenitive[new Date().getMonth()];
 
+  const now = new Date();
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const dayOfMonth = now.getDate();
+  const monthProgress = (dayOfMonth / daysInMonth) * 100;
+
   return (
-    <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-8 border border-zinc-100 dark:border-zinc-800 shadow-sm relative overflow-hidden">
+    <div className="bg-zinc-900 dark:bg-zinc-900 rounded-[2.5rem] p-8 shadow-2xl shadow-brand-violet/20 relative overflow-hidden text-white">
       <div className="relative z-10">
-        <div className="flex items-center gap-2 mb-2">
-          <div className="w-8 h-8 rounded-full bg-brand-violet/10 flex items-center justify-center">
-            <Wallet className="w-4 h-4 text-brand-violet" />
-          </div>
-          <span className="text-sm font-bold text-zinc-500 uppercase tracking-wider">Свободные деньги</span>
+        <div className="flex justify-between items-start mb-6">
+           <div className="px-3 py-1 bg-white/10 backdrop-blur-md rounded-full border border-white/5">
+              <span className="text-[10px] font-black uppercase tracking-widest text-white/70">Свободные деньги</span>
+           </div>
+           <Wallet className="w-6 h-6 text-brand-violet" />
         </div>
 
-        <div className="flex items-baseline gap-2">
-          <span className="text-5xl font-black">{(freeMoney || 0).toLocaleString('ru-RU')}</span>
-          <span className="text-2xl font-bold text-zinc-400">₽</span>
+        <div className="flex items-baseline gap-2 mb-1">
+          <span className="text-5xl font-black tracking-tighter leading-none">{(freeMoney || 0).toLocaleString('ru-RU')}</span>
+          <span className="text-2xl font-bold text-white/30">₽</span>
         </div>
 
-        <p className="mt-4 text-sm text-zinc-400 font-medium">
-          До конца {currentMonthName} осталось {
-            Math.max(0, Math.ceil((new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))
-          } дней
-        </p>
+        <div className="h-1.5 w-full bg-white/5 rounded-full mt-8 overflow-hidden">
+           <div
+             className="h-full bg-brand-violet rounded-full transition-all duration-1000"
+             style={{ width: `${monthProgress}%` }}
+           />
+        </div>
+
+        <div className="flex justify-between items-center mt-4">
+          <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest">
+            До конца {currentMonthName}
+          </p>
+          <p className="text-xs text-white/80 font-black">
+            {Math.max(0, Math.ceil((new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))} ДНЕЙ
+          </p>
+        </div>
       </div>
 
-      <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-brand-violet/5 rounded-full blur-3xl" />
-      <div className="absolute -right-4 top-4 w-20 h-20 bg-brand-emerald/5 rounded-full blur-2xl" />
+      {/* Modern mesh gradient background */}
+      <div className="absolute -right-20 -top-20 w-64 h-64 bg-brand-violet/20 rounded-full blur-[80px]" />
+      <div className="absolute -left-20 -bottom-20 w-64 h-64 bg-brand-emerald/10 rounded-full blur-[80px]" />
     </div>
   );
 }

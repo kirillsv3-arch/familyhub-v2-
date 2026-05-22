@@ -29,14 +29,14 @@ export function HorizonRibbon({ events }: HorizonRibbonProps) {
     if (type === 'subscription') return 'bg-brand-violet';
     if (type === 'shopping') return 'bg-zinc-400';
     if (category === 'loan') return 'bg-amber-400';
-    return 'bg-zinc-400';
+    return 'bg-zinc-300 dark:bg-zinc-700';
   };
 
   return (
     <div className="relative">
       <div
         ref={scrollRef}
-        className="flex gap-4 overflow-x-auto pb-4 -mx-6 px-6 scrollbar-hide"
+        className="flex gap-2 overflow-x-auto pb-6 -mx-6 px-6 scrollbar-hide"
         style={{ scrollSnapType: 'x mandatory' }}
       >
         {days.map((day, i) => {
@@ -46,33 +46,31 @@ export function HorizonRibbon({ events }: HorizonRibbonProps) {
           return (
             <div
               key={i}
-              className="flex-shrink-0 flex flex-col items-center gap-2 min-w-[3rem]"
-              style={{ scrollSnapAlign: 'start' }}
+              className={`flex-shrink-0 flex flex-col items-center gap-3 min-w-[4.5rem] py-4 rounded-3xl transition-all ${
+                isToday ? 'bg-brand-violet text-white shadow-lg shadow-brand-violet/25' : 'bg-white dark:bg-zinc-900'
+              }`}
+              style={{ scrollSnapAlign: 'center' }}
             >
               <div className="flex flex-col items-center">
-                <span className="text-[10px] font-bold text-zinc-400 uppercase">
+                <span className={`text-[9px] font-black uppercase tracking-widest mb-1 ${isToday ? 'text-white/60' : 'text-zinc-400'}`}>
                   {day.toLocaleString('ru-RU', { weekday: 'short' })}
                 </span>
-                <span className={`text-sm font-black ${isToday ? 'text-brand-violet' : 'text-zinc-600'}`}>
+                <span className={`text-xl font-black ${isToday ? 'text-white' : 'text-zinc-800 dark:text-zinc-100'}`}>
                   {day.getDate()}
                 </span>
               </div>
 
-              <div className="h-12 w-1 flex flex-col-reverse gap-1 items-center">
-                {dots.map((dot, idx) => (
+              <div className="flex gap-1 min-h-[6px]">
+                {dots.slice(0, 3).map((dot, idx) => (
                   <motion.div
                     key={idx}
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className={`w-2.5 h-2.5 rounded-full ${getDotColor(dot.type, dot.category)} shadow-sm`}
+                    className={`w-1.5 h-1.5 rounded-full ${isToday ? 'bg-white' : getDotColor(dot.type, dot.category)}`}
                   />
                 ))}
-                <div className="flex-1 w-[1px] bg-zinc-100 dark:bg-zinc-800" />
+                {dots.length === 0 && <div className="w-1.5 h-1.5 rounded-full bg-zinc-100 dark:bg-zinc-800" />}
               </div>
-
-              {isToday && (
-                <div className="text-[10px] font-black text-brand-violet uppercase">Сегодня</div>
-              )}
             </div>
           );
         })}

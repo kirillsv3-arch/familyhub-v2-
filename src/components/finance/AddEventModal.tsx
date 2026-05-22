@@ -86,25 +86,31 @@ export function AddEventModal({ onClose, onSuccess, members }: AddEventModalProp
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="flex gap-2 p-1 bg-zinc-100 dark:bg-zinc-800 rounded-2xl">
-            {(['income', 'expense', 'subscription', 'shopping'] as const).map((t) => (
-              <button
-                key={t}
-                type="button"
-                onClick={() => setType(t)}
-                className={`flex-1 py-2 text-[10px] font-black uppercase rounded-xl transition-all ${
-                  type === t
-                  ? 'bg-white dark:bg-zinc-700 shadow-sm text-brand-violet'
-                  : 'text-zinc-500'
-                }`}
-              >
-                {t === 'income' ? 'Доход' : t === 'expense' ? 'Расход' : t === 'subscription' ? 'Подписка' : 'Закупка'}
-              </button>
-            ))}
+        <form onSubmit={handleSubmit} className="space-y-8">
+          <div className="space-y-3">
+             <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Тип события</p>
+             <div className="grid grid-cols-2 gap-2">
+               {(['income', 'expense', 'subscription', 'shopping'] as const).map((t) => (
+                 <button
+                   key={t}
+                   type="button"
+                   onClick={() => setType(t)}
+                   className={`py-3 px-4 rounded-2xl border-2 transition-all flex items-center justify-center gap-2 ${
+                     type === t
+                     ? 'border-brand-violet bg-brand-violet/5 text-brand-violet'
+                     : 'border-zinc-100 dark:border-zinc-800 text-zinc-400 hover:border-zinc-200'
+                   }`}
+                 >
+                   <span className="text-[10px] font-black uppercase tracking-wider">
+                     {t === 'income' ? 'Доход' : t === 'expense' ? 'Расход' : t === 'subscription' ? 'Подписка' : 'Закупка'}
+                   </span>
+                 </button>
+               ))}
+             </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-4 bg-zinc-50 dark:bg-zinc-800/50 p-6 rounded-[2rem]">
+            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Что планируем?</p>
             <input
               autoFocus
               value={name}
@@ -141,22 +147,23 @@ export function AddEventModal({ onClose, onSuccess, members }: AddEventModalProp
           )}
 
           <div className="space-y-4">
-             <div className="flex gap-2">
+             <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Когда?</p>
+             <div className="flex gap-2 p-1 bg-zinc-100 dark:bg-zinc-800 rounded-xl">
                 <button
                   type="button"
                   onClick={() => { setDateType('dayOfMonth'); setDateValue([]); }}
-                  className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${dateType === 'dayOfMonth' ? 'bg-brand-violet text-white' : 'bg-zinc-100 text-zinc-500'}`}
-                >Числа месяца</button>
+                  className={`flex-1 py-2 rounded-lg text-[9px] font-black uppercase transition-all ${dateType === 'dayOfMonth' ? 'bg-white dark:bg-zinc-700 text-brand-violet shadow-sm' : 'text-zinc-500'}`}
+                >Числа</button>
                 <button
                   type="button"
                   onClick={() => { setDateType('dayOfWeek'); setDateValue([]); }}
-                  className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${dateType === 'dayOfWeek' ? 'bg-brand-violet text-white' : 'bg-zinc-100 text-zinc-500'}`}
-                >Дни недели</button>
+                  className={`flex-1 py-2 rounded-lg text-[9px] font-black uppercase transition-all ${dateType === 'dayOfWeek' ? 'bg-white dark:bg-zinc-700 text-brand-violet shadow-sm' : 'text-zinc-500'}`}
+                >Неделя</button>
                 <button
                   type="button"
                   onClick={() => { setDateType('nthDayOfWeek'); setDateValue([1, 1]); }}
-                  className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${dateType === 'nthDayOfWeek' ? 'bg-brand-violet text-white' : 'bg-zinc-100 text-zinc-500'}`}
-                >Сложные</button>
+                  className={`flex-1 py-2 rounded-lg text-[9px] font-black uppercase transition-all ${dateType === 'nthDayOfWeek' ? 'bg-white dark:bg-zinc-700 text-brand-violet shadow-sm' : 'text-zinc-500'}`}
+                >Сложно</button>
              </div>
 
              {dateType === 'dayOfMonth' && (
