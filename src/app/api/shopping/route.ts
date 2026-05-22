@@ -45,24 +45,45 @@ export async function POST(request: Request) {
 
   try {
     const data = await request.json();
+    console.log("Create shopping request body:", data);
+
     const { name, quantity, unit, store, isMarketplace, link } = data;
 
-    if (!name || !store) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    // Strict validation
+    if (!name || typeof name !== 'string') {
+      return NextResponse.json({ error: "Название товара обязательно и должно быть строкой" }, { status: 400 });
+    }
+    if (!store || typeof store !== 'string') {
+      return NextResponse.json({ error: "Магазин обязателен" }, { status: 400 });
     }
 
-    const newItem = {
-      name,
-      quantity: typeof quantity === 'number' ? quantity : null,
-      unit: unit || null,
-      store,
+    const newItem: Partial<ShoppingItem> & { createdAt: FieldValue } = {
+      name: name.trim(),
+      store: store,
       isMarketplace: !!isMarketplace,
-      link: link || null,
       isBought: false,
       addedBy: user.uid,
       archived: false,
       createdAt: FieldValue.serverTimestamp(),
     };
+
+    if (typeof quantity === 'number') {
+      newItem.quantity = quantity;
+    } else {
+      newItem.quantity = null;
+    }
+
+    if (unit && typeof unit === 'string') {
+      newItem.unit = unit;
+    } else {
+      newItem.unit = null;
+    }
+
+    if (link && typeof link === 'string') {
+      newItem.link = link;
+    } else {
+      newItem.link = null;
+    }
 
     const docRef = await adminDb
       .collection("families")

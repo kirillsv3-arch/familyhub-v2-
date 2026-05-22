@@ -10,8 +10,10 @@ import { ShoppingListSkeleton } from '@/components/shopping/Skeletons';
 import { Plus, Trash2, BarChart3 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import { useToast } from '@/components/providers/ToastProvider';
 
 export default function ShoppingPage() {
+  const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<StoreType>('ПЛАН');
   const [items, setItems] = useState<ShoppingItem[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -42,12 +44,24 @@ export default function ShoppingPage() {
     isMarketplace: boolean;
     link: string | null
   }) => {
-    const res = await fetch('/api/shopping', {
-      method: 'POST',
-      body: JSON.stringify(itemData),
-    });
-    if (res.ok) {
-      fetchItems();
+    try {
+      const res = await fetch('/api/shopping', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(itemData),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        showToast('Добавлено в список');
+        fetchItems();
+      } else {
+        showToast(data.error || 'Ошибка при добавлении', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Сбой сети. Попробуй позже', 'error');
     }
   };
 

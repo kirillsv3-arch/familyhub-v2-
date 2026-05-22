@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { BottomNavigation } from "@/components/BottomNavigation";
 import { FCMHandler } from "@/components/providers/FCMHandler";
+import { ToastProvider } from "@/components/providers/ToastProvider";
 
 const inter = Inter({ subsets: ["latin", "cyrillic"] });
 
@@ -21,11 +22,13 @@ export default function RootLayout({
     <html lang="ru" suppressHydrationWarning>
       <body className={`${inter.className} min-h-screen bg-background text-foreground transition-colors duration-300`}>
         <ThemeProvider>
-          <FCMHandler />
-          <div className="mx-auto max-w-md min-h-screen border-x border-zinc-200 dark:border-zinc-800 shadow-xl relative pb-20">
-            {children}
-            <BottomNavigation />
-          </div>
+          <ToastProvider>
+            <FCMHandler />
+            <div className="mx-auto max-w-md min-h-screen border-x border-zinc-200 dark:border-zinc-800 shadow-xl relative pb-20">
+              {children}
+              <BottomNavigation />
+            </div>
+          </ToastProvider>
         </ThemeProvider>
       </body>
     </html>
