@@ -98,6 +98,56 @@ export interface Transaction {
   type: 'expense' | 'income';
 }
 
+/**
+ * FIRESTORE PATHS:
+ * Events: families/{familyId}/finance/data/events
+ * PiggyBanks: families/{familyId}/finance/data/savings
+ * History: families/{familyId}/finance/data/history
+ */
+
+export type FinanceEventType = 'income' | 'expense' | 'subscription' | 'purchase';
+
+export interface FinanceEvent {
+  id: string;
+  type: FinanceEventType;
+  title: string;
+  amount: number; // For 'purchase', this might be 0 until completed
+  dateType: 'dayOfMonth' | 'dayOfWeek';
+  dateValue: number; // 1-31 for dayOfMonth, 0-6 for dayOfWeek
+  repeatMonthly: boolean;
+  isCompleted: boolean; // For purchase and one-time events
+  completedAmount?: number;
+  notificationSent: boolean;
+  active: boolean; // Primarily for subscriptions
+  userId: string;
+  createdAt: Timestamp | Date | string;
+}
+
+export interface PiggyBankContribution {
+  amount: number;
+  date: Timestamp | Date | string;
+  userId: string;
+}
+
+export interface PiggyBank {
+  id: string;
+  title: string;
+  targetAmount: number;
+  currentAmount: number;
+  contributions: PiggyBankContribution[];
+  wishlistItemId?: string;
+  userId: string;
+  createdAt: Timestamp | Date | string;
+}
+
+export interface FinanceHistory {
+  id: string;
+  eventId: string; // Reference to the template in 'events'
+  amount: number;
+  date: Timestamp | Date | string;
+  userId: string;
+}
+
 export type WishlistPriority = 'idea' | 'someday' | 'want' | 'urgent';
 
 export interface WishlistItem {
