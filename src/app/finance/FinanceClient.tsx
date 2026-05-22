@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { User, FinanceEvent, FinanceHistory, SavingGoal } from '@/types';
 import { Plus, Calendar, PieChart, Target } from 'lucide-react';
 import { HorizonRibbon } from '@/components/finance/HorizonRibbon';
@@ -43,6 +43,8 @@ export default function FinanceClient({
     const occurrences: (FinanceEvent & { date: string; isTemplate: boolean })[] = [];
 
     events.forEach(event => {
+      const dValue = Array.isArray(event.dateValue) ? event.dateValue : [event.dateValue];
+
       // Basic expansion logic
       if (event.dateType === 'dayOfMonth') {
         // Find days in current and next month
@@ -51,30 +53,92 @@ export default function FinanceClient({
 
         [0, 1, 2].forEach(monthOffset => {
           const d = new Date(currentYear, currentMonth + monthOffset, 1);
-          event.dateValue.forEach(day => {
-            const date = new Date(d.getFullYear(), d.getMonth(), day);
-            if (date >= today && date <= horizon) {
-              occurrences.push({ ...event, date: date.toISOString(), isTemplate: true });
+          const daysInMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+          dValue.forEach(day => {
+            if (day <= daysInMonth) {
+              const date = new Date(d.getFullYear(), d.getMonth(), day);
+              if (date >= today && date <= horizon) {
+                occurrences.push({ ...event, date: date.toISOString(), isTemplate: true });
+              }
             }
           });
         });
       } else if (event.dateType === 'dayOfWeek') {
          const d = new Date(today);
          while (d <= horizon) {
-           if (event.dateValue.includes(d.getDay())) {
+           if (dValue.includes(d.getDay())) {
              occurrences.push({ ...event, date: new Date(d).toISOString(), isTemplate: true });
            }
            d.setDate(d.getDate() + 1);
          }
+      } else if (event.dateType === 'nthDayOfWeek') {
+         const [nth, dayOfWeek] = dValue;
+         const currentYear = today.getFullYear();
+         const currentMonth = today.getMonth();
+
+         [0, 1, 2].forEach(monthOffset => {
+            const firstOfMonth = new Date(currentYear, currentMonth + monthOffset, 1);
+            let count = 0;
+            const d = new Date(firstOfMonth);
+            while (d.getMonth() === firstOfMonth.getMonth()) {
+               if (d.getDay() === dayOfWeek) {
+                  count++;
+                  if (count === nth) {
+                     if (d >= today && d <= horizon) {
+                        occurrences.push({ ...event, date: d.toISOString(), isTemplate: true });
+                     }
+                     break;
+                  }
+               }
+               d.setDate(d.getDate() + 1);
+            }
+         });
       }
-      // Add other dateTypes...
     });
 
     return occurrences.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }, [events]);
 
+  // Fallback notification trigger (client-side)
+  useEffect(() => {
+    const checkReminders = async () => {
+      const today = new Date();
+      today.setHours(0,0,0,0);
+
+      const upcoming = virtualEvents.filter(e => {
+        const eventDate = new Date(e.date);
+        const diffDays = Math.ceil((eventDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        return diffDays > 0 && diffDays <= (e.reminderDaysBefore || 2) && e.reminderEnabled;
+      });
+
+      if (upcoming.length > 0) {
+        const lastNotified = localStorage.getItem('finance_last_notified');
+        const todayStr = today.toISOString().split('T')[0];
+
+        if (lastNotified !== todayStr) {
+          try {
+            await fetch('/api/finance/notify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                title: 'Бюджет: Предстоящие траты',
+                body: `Напоминаем о ${upcoming.length} событиях в ближайшие дни.`
+              })
+            });
+            localStorage.setItem('finance_last_notified', todayStr);
+          } catch (e) {
+            console.error(e);
+          }
+        }
+      }
+    };
+
+    if (virtualEvents.length > 0) {
+      checkReminders();
+    }
+  }, [virtualEvents]);
+
   const refreshData = async () => {
-    // Re-fetch logic or just optimistic updates
     const res = await fetch('/api/finance/events');
     if (res.ok) setEvents(await res.json());
 
@@ -114,6 +178,7 @@ export default function FinanceClient({
                 setSelectedShoppingEvent(event);
                 setIsShoppingModalOpen(true);
               }}
+              onRefresh={refreshData}
             />
           </div>
         </section>
