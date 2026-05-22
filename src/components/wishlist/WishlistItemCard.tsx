@@ -87,7 +87,26 @@ export function WishlistItemCard({ item, isOwner, onEdit, onDelete }: WishlistIt
         )}
 
         <button
-          onClick={() => alert('Запланировано (заглушка)')}
+          onClick={async () => {
+            if (!confirm(`Создать копилку для "${item.name}"?`)) return;
+            try {
+              const res = await fetch('/api/finance/savings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  name: item.name,
+                  targetAmount: item.price || 0,
+                  wishlistItemId: item.id,
+                  userId: item.ownerId
+                }),
+              });
+              if (res.ok) {
+                alert('Копилка создана в разделе Бюджет!');
+              }
+            } catch (e) {
+              console.error(e);
+            }
+          }}
           className="flex items-center justify-center gap-2 py-2 px-3 text-brand-violet hover:bg-brand-violet/5 rounded-xl text-sm font-semibold transition-colors"
           title="Запланировать покупку"
         >
