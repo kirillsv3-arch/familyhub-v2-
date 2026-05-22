@@ -96,8 +96,8 @@ export interface FinanceEvent {
   category?: 'loan' | string;
   name: string;
   amount?: number;
-  dateType: 'dayOfMonth' | 'dayOfWeek' | 'specificDates';
-  dateValue: number[]; // days of month 1-31, days of week 0-6, or timestamps for specificDates
+  dateType: 'dayOfMonth' | 'dayOfWeek' | 'specificDates' | 'nthDayOfWeek';
+  dateValue: number[]; // days of month 1-31, days of week 0-6, timestamps, or [nth, dayOfWeek]
   recurring: boolean;
   userId: string | 'family';
   createdAt: Timestamp | Date | string;

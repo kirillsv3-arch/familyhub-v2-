@@ -2,15 +2,16 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingCart, CreditCard, ArrowDownCircle, ArrowUpCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { ShoppingCart, CreditCard, ArrowDownCircle, ArrowUpCircle, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
 import { FinanceEvent } from '@/types';
 
 interface EventListProps {
   events: (FinanceEvent & { date: string })[];
   onShoppingClick: (event: FinanceEvent & { date: string }) => void;
+  onRefresh: () => void;
 }
 
-export function EventList({ events, onShoppingClick }: EventListProps) {
+export function EventList({ events, onShoppingClick, onRefresh }: EventListProps) {
   const [showAll, setShowAll] = useState(false);
   const displayedEvents = showAll ? events : events.slice(0, 3);
 
@@ -20,6 +21,17 @@ export function EventList({ events, onShoppingClick }: EventListProps) {
     if (type === 'shopping') return <ShoppingCart className="w-5 h-5 text-zinc-400" />;
     if (category === 'loan') return <CreditCard className="w-5 h-5 text-amber-400" />;
     return <ArrowDownCircle className="w-5 h-5 text-zinc-400" />;
+  };
+
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if (!confirm('Удалить это событие из бюджета?')) return;
+    try {
+      const res = await fetch(`/api/finance/events/${id}`, { method: 'DELETE' });
+      if (res.ok) onRefresh();
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const getBgColor = (type: string, category?: string) => {
@@ -57,11 +69,11 @@ export function EventList({ events, onShoppingClick }: EventListProps) {
                 </p>
               </div>
 
-              <div className="text-right">
+              <div className="text-right flex flex-col items-end gap-2">
                 {event.type === 'shopping' ? (
                   <span className="text-xs font-bold text-zinc-400 uppercase">Ввести чек</span>
                 ) : (
-                  <div className="flex flex-col">
+                  <div className="flex flex-col items-end">
                     <span className={`font-black ${event.type === 'income' ? 'text-brand-emerald' : 'text-zinc-800 dark:text-zinc-100'}`}>
                       {event.type === 'income' ? '+' : ''}{event.amount?.toLocaleString('ru-RU')} ₽
                     </span>
@@ -70,6 +82,13 @@ export function EventList({ events, onShoppingClick }: EventListProps) {
                     )}
                   </div>
                 )}
+
+                <button
+                  onClick={(e) => handleDelete(e, event.id)}
+                  className="p-1.5 text-zinc-300 hover:text-red-400 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
               </div>
             </motion.div>
           );
