@@ -66,11 +66,11 @@ export const STORES: StoreType[] = [
 export interface ShoppingItem {
   id: string;
   name: string;
-  quantity?: number;
-  unit?: string;
+  quantity: number | null;
+  unit: string | null;
   store: StoreType;
   isMarketplace: boolean;
-  link?: string;
+  link: string | null;
   isBought: boolean;
   price?: number;
   addedBy: string;
