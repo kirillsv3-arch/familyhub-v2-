@@ -1,6 +1,6 @@
 'use client';
 
-import { Task } from '@/types';
+import { Task, TimeOfDay } from '@/types';
 import { CheckCircle2, Circle, Clock, User, Users, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
@@ -15,16 +15,33 @@ function cn(...inputs: ClassValue[]) {
 
 interface TaskCardProps {
   task: Task;
+  currentUserId?: string;
   partnerName?: string;
   onToggle: (id: string, isCompleted: boolean) => void;
   onEdit: (task: Task) => void;
   onDelete: (id: string) => void;
 }
 
-export function TaskCard({ task, partnerName, onToggle, onEdit, onDelete }: TaskCardProps) {
-  const [showMenu, setShowMenu] = useState(false);
+const CATEGORY_LABELS: Record<string, string> = {
+  'urgent-important': 'Срочно / Важно',
+  'important-not-urgent': 'Не срочно / Важно',
+  'urgent-not-important': 'Срочно / Не важно',
+  'not-urgent-not-important': 'Не срочно / Не важно',
+};
 
-  const handleToggle = () => {
+const TIME_OF_DAY_LABELS: Record<TimeOfDay, string> = {
+  morning: 'Утро',
+  day: 'День',
+  evening: 'Вечер',
+  night: 'Ночь',
+};
+
+export function TaskCard({ task, currentUserId, partnerName, onToggle, onEdit, onDelete }: TaskCardProps) {
+  const [showMenu, setShowMenu] = useState(false);
+  const isOwnTask = !task.isGeneral && task.assigneeId === currentUserId;
+
+  const handleToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (!task.isCompleted) {
       confetti({
         particleCount: 100,
@@ -43,11 +60,14 @@ export function TaskCard({ task, partnerName, onToggle, onEdit, onDelete }: Task
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
       className={cn(
-        "group relative bg-white dark:bg-zinc-900 rounded-[2rem] p-5 border transition-all",
+        "group relative rounded-[2rem] p-5 border transition-all",
         task.isCompleted
-          ? "border-zinc-100 dark:border-zinc-800 opacity-60"
-          : "border-zinc-100 dark:border-zinc-800 shadow-sm"
+          ? "border-zinc-100 dark:border-zinc-800 opacity-60 bg-zinc-50 dark:bg-zinc-900/50"
+          : isOwnTask
+            ? "bg-brand-violet/5 border-brand-violet/10 shadow-sm"
+            : "bg-white dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800 shadow-sm"
       )}
+      onClick={() => setShowMenu(!showMenu)}
     >
       <div className="flex items-start gap-4">
         <button
@@ -64,51 +84,61 @@ export function TaskCard({ task, partnerName, onToggle, onEdit, onDelete }: Task
           )}
         </button>
 
-        <div className="flex-1 min-w-0" onClick={() => setShowMenu(!showMenu)}>
+        <div className="flex-1 min-w-0">
           <h3 className={cn(
-            "text-lg font-bold leading-tight mb-1 break-words",
+            "text-lg font-bold leading-tight mb-2 break-words",
             task.isCompleted && "line-through text-zinc-400"
           )}>
             {task.title}
           </h3>
 
-          {task.description && (
-            <p className="text-sm text-zinc-500 line-clamp-2 mb-3">
-              {task.description}
-            </p>
-          )}
+          <div className="flex flex-wrap gap-2 mb-3">
+            <span className="text-[10px] font-bold text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-md uppercase tracking-wider">
+              {CATEGORY_LABELS[task.category]}
+            </span>
 
-          <div className="flex flex-wrap gap-3 mt-1">
             {task.deadline && (
-              <div className="flex items-center gap-1.5 text-xs font-bold text-orange-500 bg-orange-500/10 px-2.5 py-1 rounded-full">
-                <Clock className="w-3.5 h-3.5" />
+              <span className="text-[10px] font-bold text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded-md uppercase tracking-wider flex items-center gap-1">
+                <Clock className="w-3 h-3" />
                 {format(new Date(task.deadline), 'HH:mm')}
-              </div>
+              </span>
             )}
 
-            <div className={cn(
-              "flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full",
-              task.isGeneral
-                ? "text-blue-500 bg-blue-500/10"
-                : "text-zinc-500 bg-zinc-500/10"
-            )}>
-              {task.isGeneral ? (
-                <>
-                  <Users className="w-3.5 h-3.5" />
-                  Общая
-                </>
-              ) : (
-                <>
-                  <User className="w-3.5 h-3.5" />
-                  {task.assigneeId === task.createdBy ? 'Мне' : partnerName || 'Партнеру'}
-                </>
-              )}
-            </div>
+            {task.timeOfDay && !task.deadline && (
+              <span className="text-[10px] font-bold text-blue-500 bg-blue-500/10 px-2 py-0.5 rounded-md uppercase tracking-wider flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                {TIME_OF_DAY_LABELS[task.timeOfDay]}
+              </span>
+            )}
+
+            {!task.deadline && !task.timeOfDay && (
+              <span className="text-[10px] font-bold text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-md uppercase tracking-wider">
+                В течение дня
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 text-xs font-medium text-zinc-500">
+            <span className="opacity-60 text-[10px] uppercase font-bold tracking-widest">Исполнитель:</span>
+            {task.isGeneral ? (
+              <div className="flex items-center gap-1">
+                <Users className="w-3 h-3" />
+                <span>Общая</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1">
+                <User className="w-3 h-3" />
+                <span>{task.assigneeId === currentUserId ? 'Я' : partnerName || 'Партнер'}</span>
+              </div>
+            )}
           </div>
         </div>
 
         <button
-          onClick={() => setShowMenu(!showMenu)}
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowMenu(!showMenu);
+          }}
           className="p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
         >
           <MoreVertical className="w-5 h-5" />
@@ -125,7 +155,8 @@ export function TaskCard({ task, partnerName, onToggle, onEdit, onDelete }: Task
           >
             <div className="pt-4 mt-4 border-t border-zinc-100 dark:border-zinc-800 grid grid-cols-2 gap-3">
               <button
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   onEdit(task);
                   setShowMenu(false);
                 }}
@@ -135,7 +166,8 @@ export function TaskCard({ task, partnerName, onToggle, onEdit, onDelete }: Task
                 Изменить
               </button>
               <button
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   if (confirm('Удалить задачу?')) onDelete(task.id);
                   setShowMenu(false);
                 }}

@@ -151,13 +151,16 @@ export interface WishlistItem {
 
 export type TaskCategory = 'urgent-important' | 'important-not-urgent' | 'urgent-not-important' | 'not-urgent-not-important';
 
+export type TimeOfDay = 'morning' | 'day' | 'evening' | 'night';
+
 export interface Task {
   id: string;
   title: string;
   description?: string;
   category: TaskCategory;
   date: string | null; // ISO date string or null for "someday"
-  deadline?: string | null;
+  deadline?: string | null; // Exact time if set
+  timeOfDay?: TimeOfDay | null;
   isCompleted: boolean;
   isGeneral: boolean;
   assigneeId: string | null; // null means unassigned or general

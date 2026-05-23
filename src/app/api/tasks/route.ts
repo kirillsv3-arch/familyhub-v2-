@@ -38,7 +38,7 @@ export async function POST(request: Request) {
 
   try {
     const data = await request.json();
-    const { title, description, category, date, deadline, isGeneral, assigneeId } = data;
+    const { title, description, category, date, deadline, timeOfDay, isGeneral, assigneeId } = data;
 
     if (!title || !category) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -50,6 +50,7 @@ export async function POST(request: Request) {
       category,
       date: date || null,
       deadline: deadline || null,
+      timeOfDay: timeOfDay || null,
       isCompleted: false,
       isGeneral: !!isGeneral,
       assigneeId: isGeneral ? null : (assigneeId || user.uid),

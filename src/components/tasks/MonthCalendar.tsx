@@ -31,15 +31,15 @@ export function MonthCalendar({ selectedDate, onDateChange, tasks, events, onAdd
   };
 
   return (
-    <div className="px-6 pb-24">
-      <div className="bg-white dark:bg-zinc-900 rounded-[2.5rem] p-6 border border-zinc-100 dark:border-zinc-800 shadow-sm relative overflow-hidden">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="font-bold">Календарь</h3>
+    <div className="px-4 pb-20">
+      <div className="bg-transparent relative overflow-hidden">
+        <div className="flex justify-between items-center mb-1 px-4">
+          <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Календарь</h3>
           <button
             onClick={onAddEvent}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-xl text-xs font-bold"
+            className="flex items-center gap-1.5 px-3 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-[10px] font-bold"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="w-3 h-3" />
             Событие
           </button>
         </div>

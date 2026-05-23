@@ -1,21 +1,21 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Task, FamilyEvent, User, TaskCategory } from '@/types';
-import { DaySelector } from '@/components/tasks/DaySelector';
-import { QuadrantTabs } from '@/components/tasks/QuadrantTabs';
+import { Task, FamilyEvent, User } from '@/types';
 import { TaskCard } from '@/components/tasks/TaskCard';
-import { SomedayTasks } from '@/components/tasks/SomedayTasks';
 import { MonthCalendar } from '@/components/tasks/MonthCalendar';
 import { TaskModal } from '@/components/tasks/TaskModal';
 import { EventModal } from '@/components/tasks/EventModal';
-import { Plus } from 'lucide-react';
-import { isSameDay, parseISO, startOfToday } from 'date-fns';
+import { Plus, Info, ChevronRight } from 'lucide-react';
+import { isSameDay, parseISO, startOfToday, format } from 'date-fns';
+import { ru } from 'date-fns/locale';
 import { AnimatePresence } from 'framer-motion';
+
+const TIME_ORDER = { morning: 1, day: 2, evening: 3, night: 4 };
 
 export default function TasksPage() {
   const [selectedDate, setSelectedDate] = useState<Date>(startOfToday());
-  const [activeTab, setActiveTab] = useState<TaskCategory>('urgent-important');
+  const [showSomeday, setShowSomeday] = useState(false);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [events, setEvents] = useState<FamilyEvent[]>([]);
   const [user, setUser] = useState<User | null>(null);
@@ -70,7 +70,6 @@ export default function TasksPage() {
     });
 
     if (res.ok) {
-      // If assigned to partner, send notification
       if (partner && taskData.assigneeId === partner.uid && !editingTask) {
         await fetch('/api/tasks/notify', {
           method: 'POST',
@@ -81,7 +80,6 @@ export default function TasksPage() {
           }),
         });
       }
-
       fetchData();
       setEditingTask(null);
     }
@@ -100,102 +98,110 @@ export default function TasksPage() {
     if (res.ok) fetchData();
   };
 
-  const filteredTasks = useMemo(() => {
-    return tasks.filter(t =>
-      t.date &&
-      isSameDay(parseISO(t.date), selectedDate) &&
-      t.category === activeTab
-    );
-  }, [tasks, selectedDate, activeTab]);
+  const sortedDayTasks = useMemo(() => {
+    const dayTasks = showSomeday
+        ? tasks.filter(t => !t.date)
+        : tasks.filter(t => t.date && isSameDay(parseISO(t.date), selectedDate));
 
-  const somedayTasks = useMemo(() => {
-    return tasks.filter(t => !t.date);
-  }, [tasks]);
+    return dayTasks.sort((a, b) => {
+        // 1. Exact time
+        if (a.deadline && b.deadline) return a.deadline.localeCompare(b.deadline);
+        if (a.deadline) return -1;
+        if (b.deadline) return 1;
 
-  const dayEvents = useMemo(() => {
-    return events.filter(e => isSameDay(parseISO(e.date), selectedDate));
-  }, [events, selectedDate]);
+        // 2. Time of day
+        if (a.timeOfDay && b.timeOfDay) return TIME_ORDER[a.timeOfDay] - TIME_ORDER[b.timeOfDay];
+        if (a.timeOfDay) return -1;
+        if (b.timeOfDay) return 1;
+
+        // 3. During the day (none)
+        return 0;
+    });
+  }, [tasks, selectedDate]);
+
+  const somedayTasksCount = tasks.filter(t => !t.date).length;
 
   return (
-    <main className="min-h-screen pb-20 bg-zinc-50 dark:bg-black">
-      <div className="pt-8 pb-4">
-        <DaySelector
-          selectedDate={selectedDate}
-          onDateChange={setSelectedDate}
-        />
-      </div>
+    <main className="flex flex-col h-screen bg-zinc-50 dark:bg-black overflow-hidden">
+      {/* Upper Zone: Scrollable Task List */}
+      <div className="flex-1 overflow-y-auto px-6 pt-12 pb-6 space-y-6 scrollbar-hide">
+        <header className="flex justify-between items-center mb-2">
+            <div className="flex flex-col">
+                <h1 className="text-3xl font-black">
+                    {showSomeday ? '💡 Идеи' : format(selectedDate, 'd MMMM', { locale: ru })}
+                </h1>
+                {showSomeday && (
+                    <button
+                        onClick={() => setShowSomeday(false)}
+                        className="text-xs font-bold text-brand-violet mt-1 flex items-center gap-1"
+                    >
+                        Вернуться к календарю
+                    </button>
+                )}
+            </div>
+            <button
+                onClick={() => setIsTaskModalOpen(true)}
+                className="w-10 h-10 bg-brand-violet text-white rounded-xl flex items-center justify-center shadow-lg shadow-brand-violet/20"
+            >
+                <Plus className="w-6 h-6" />
+            </button>
+        </header>
 
-      <QuadrantTabs
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-      />
-
-      <div className="px-6 py-6 space-y-4">
-        {dayEvents.length > 0 && (
-          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-            {dayEvents.map(event => (
-              <div
-                key={event.id}
-                className="flex items-center gap-2 px-4 py-2 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full text-sm font-bold border border-amber-200 dark:border-amber-800 shrink-0"
-              >
-                <span>✨ {event.title}</span>
-              </div>
-            ))}
+        {sortedDayTasks.length > 0 ? (
+          <div className="space-y-4">
+            <AnimatePresence mode="popLayout">
+              {sortedDayTasks.map(task => (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  currentUserId={user?.uid}
+                  partnerName={partner?.name}
+                  onToggle={handleToggleTask}
+                  onEdit={(t) => {
+                    setEditingTask(t);
+                    setIsTaskModalOpen(true);
+                  }}
+                  onDelete={handleDeleteTask}
+                />
+              ))}
+            </AnimatePresence>
+          </div>
+        ) : (
+          <div className="py-12 flex flex-col items-center justify-center text-center">
+            <div className="w-20 h-20 bg-white dark:bg-zinc-900 rounded-[2.5rem] flex items-center justify-center mb-4 shadow-sm border border-zinc-100 dark:border-zinc-800">
+                <Info className="w-8 h-8 text-zinc-300" />
+            </div>
+            {somedayTasksCount > 0 && !showSomeday ? (
+                <div className="space-y-3">
+                    <p className="font-bold text-zinc-500 text-balance">На сегодня задач нет, но у вас есть неразбранные задачи в разделе &quot;Идеи&quot;</p>
+                    <button
+                        onClick={() => setShowSomeday(true)}
+                        className="text-brand-violet font-bold flex items-center gap-1 mx-auto px-6 py-3 bg-brand-violet/10 rounded-2xl active:scale-95 transition-all"
+                    >
+                        Посмотреть идеи <ChevronRight className="w-4 h-4" />
+                    </button>
+                </div>
+            ) : (
+                <p className="font-bold text-zinc-400">Задач нет. Добавьте новую задачу</p>
+            )}
           </div>
         )}
+      </div>
 
-        <AnimatePresence mode="popLayout">
-          {filteredTasks.map(task => (
-            <TaskCard
-              key={task.id}
-              task={task}
-              partnerName={partner?.name}
-              onToggle={handleToggleTask}
-              onEdit={(t) => {
-                setEditingTask(t);
-                setIsTaskModalOpen(true);
-              }}
-              onDelete={handleDeleteTask}
+      {/* Lower Zone: Fixed Calendar */}
+      <div className="bg-white dark:bg-zinc-900 border-t border-zinc-100 dark:border-zinc-800 rounded-t-[3rem] shadow-2xl shrink-0">
+        <div className="px-2 pt-2">
+            <MonthCalendar
+                selectedDate={selectedDate}
+                onDateChange={(date) => {
+                    setSelectedDate(date);
+                    setShowSomeday(false);
+                }}
+                tasks={tasks}
+                events={events}
+                onAddEvent={() => setIsEventModalOpen(true)}
             />
-          ))}
-        </AnimatePresence>
-
-        {filteredTasks.length === 0 && (
-          <div className="text-center py-10 text-zinc-400">
-            <p className="text-sm font-medium">Нет задач в этой категории</p>
-          </div>
-        )}
-      </div>
-
-      <SomedayTasks
-        tasks={somedayTasks}
-        partnerName={partner?.name}
-        onToggle={handleToggleTask}
-        onEdit={(t) => {
-          setEditingTask(t);
-          setIsTaskModalOpen(true);
-        }}
-        onDelete={handleDeleteTask}
-      />
-
-      <MonthCalendar
-        selectedDate={selectedDate}
-        onDateChange={setSelectedDate}
-        tasks={tasks}
-        events={events}
-        onAddEvent={() => setIsEventModalOpen(true)}
-      />
-
-      <div className="fixed bottom-24 right-6 pointer-events-none">
-        <button
-          onClick={() => {
-            setEditingTask(null);
-            setIsTaskModalOpen(true);
-          }}
-          className="w-16 h-16 bg-brand-violet text-white rounded-2xl flex items-center justify-center shadow-xl shadow-brand-violet/30 pointer-events-auto active:scale-95 transition-transform"
-        >
-          <Plus className="w-10 h-10" />
-        </button>
+        </div>
       </div>
 
       <TaskModal

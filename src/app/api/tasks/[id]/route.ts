@@ -23,6 +23,7 @@ export async function PATCH(
     if (data.category !== undefined) updateData.category = data.category;
     if (data.date !== undefined) updateData.date = data.date;
     if (data.deadline !== undefined) updateData.deadline = data.deadline;
+    if (data.timeOfDay !== undefined) updateData.timeOfDay = data.timeOfDay;
     if (data.isCompleted !== undefined) {
       updateData.isCompleted = data.isCompleted;
       updateData.completedAt = data.isCompleted ? FieldValue.serverTimestamp() : null;

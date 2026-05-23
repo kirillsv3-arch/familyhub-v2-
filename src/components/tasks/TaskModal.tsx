@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Task, TaskCategory } from '@/types';
-import { X, Calendar as CalendarIcon, Clock, User, Users } from 'lucide-react';
+import { Task, TaskCategory, TimeOfDay } from '@/types';
+import { X, Clock, User, Users, Sun, Sunrise, Sunset, Moon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -35,7 +35,9 @@ export function TaskModal({ isOpen, onClose, onSave, initialTask, selectedDate, 
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<TaskCategory>('urgent-important');
   const [isSomeday, setIsSomeday] = useState(false);
+  const [timeType, setTimeType] = useState<'none' | 'timeOfDay' | 'exact'>('none');
   const [deadline, setDeadline] = useState('');
+  const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>('morning');
   const [isGeneral, setIsGeneral] = useState(true);
   const [assigneeId, setAssigneeId] = useState<string | null>(null);
 
@@ -45,7 +47,17 @@ export function TaskModal({ isOpen, onClose, onSave, initialTask, selectedDate, 
       setDescription(initialTask.description || '');
       setCategory(initialTask.category);
       setIsSomeday(!initialTask.date);
-      setDeadline(initialTask.deadline ? format(new Date(initialTask.deadline), 'HH:mm') : '');
+
+      if (initialTask.deadline) {
+        setTimeType('exact');
+        setDeadline(format(new Date(initialTask.deadline), 'HH:mm'));
+      } else if (initialTask.timeOfDay) {
+        setTimeType('timeOfDay');
+        setTimeOfDay(initialTask.timeOfDay);
+      } else {
+        setTimeType('none');
+      }
+
       setIsGeneral(initialTask.isGeneral);
       setAssigneeId(initialTask.assigneeId);
     } else {
@@ -53,7 +65,9 @@ export function TaskModal({ isOpen, onClose, onSave, initialTask, selectedDate, 
       setDescription('');
       setCategory('urgent-important');
       setIsSomeday(false);
+      setTimeType('none');
       setDeadline('');
+      setTimeOfDay('morning');
       setIsGeneral(true);
       setAssigneeId(null);
     }
@@ -65,11 +79,17 @@ export function TaskModal({ isOpen, onClose, onSave, initialTask, selectedDate, 
     if (!title) return;
 
     let finalDeadline = null;
-    if (deadline && !isSomeday) {
-      const [hours, minutes] = deadline.split(':');
-      const d = new Date(selectedDate);
-      d.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-      finalDeadline = d.toISOString();
+    let finalTimeOfDay = null;
+
+    if (!isSomeday) {
+        if (timeType === 'exact' && deadline) {
+            const [hours, minutes] = deadline.split(':');
+            const d = new Date(selectedDate);
+            d.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+            finalDeadline = d.toISOString();
+        } else if (timeType === 'timeOfDay') {
+            finalTimeOfDay = timeOfDay;
+        }
     }
 
     onSave({
@@ -78,8 +98,9 @@ export function TaskModal({ isOpen, onClose, onSave, initialTask, selectedDate, 
       category,
       date: isSomeday ? null : selectedDate.toISOString(),
       deadline: finalDeadline,
+      timeOfDay: finalTimeOfDay,
       isGeneral,
-      assigneeId: isGeneral ? null : assigneeId,
+      assigneeId: isGeneral ? null : (assigneeId === 'me' ? null : assigneeId),
     });
     onClose();
   };
@@ -154,35 +175,80 @@ export function TaskModal({ isOpen, onClose, onSave, initialTask, selectedDate, 
               </div>
             </div>
 
-            <div className="flex gap-4">
-              <div className="flex-1">
-                <label className="text-xs font-bold text-zinc-400 uppercase tracking-widest ml-1 mb-2 block">Когда</label>
+            <div>
+              <label className="text-xs font-bold text-zinc-400 uppercase tracking-widest ml-1 mb-2 block">Дата и Время</label>
+              <div className="flex gap-2 mb-3">
                 <button
-                  onClick={() => setIsSomeday(!isSomeday)}
-                  className={cn(
-                    "w-full flex items-center justify-between p-4 rounded-2xl border font-bold text-sm",
-                    !isSomeday ? "bg-brand-violet/10 border-brand-violet/20 text-brand-violet" : "bg-zinc-100 dark:bg-zinc-800 border-transparent text-zinc-500"
-                  )}
+                    onClick={() => setIsSomeday(false)}
+                    className={cn(
+                        "flex-1 py-3 rounded-xl text-xs font-bold border transition-all",
+                        !isSomeday ? "bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 border-zinc-900" : "bg-white dark:bg-zinc-800 text-zinc-500 border-zinc-100"
+                    )}
                 >
-                  <div className="flex items-center gap-2">
-                    <CalendarIcon className="w-4 h-4" />
-                    {isSomeday ? 'Когда-нибудь' : format(selectedDate, 'd MMMM', { locale: ru })}
-                  </div>
+                    {format(selectedDate, 'd MMMM', { locale: ru })}
+                </button>
+                <button
+                    onClick={() => setIsSomeday(true)}
+                    className={cn(
+                        "flex-1 py-3 rounded-xl text-xs font-bold border transition-all",
+                        isSomeday ? "bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 border-zinc-900" : "bg-white dark:bg-zinc-800 text-zinc-500 border-zinc-100"
+                    )}
+                >
+                    Когда-нибудь
                 </button>
               </div>
 
               {!isSomeday && (
-                <div className="w-32">
-                  <label className="text-xs font-bold text-zinc-400 uppercase tracking-widest ml-1 mb-2 block">Время</label>
-                  <div className="relative">
-                    <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
-                    <input
-                      type="time"
-                      value={deadline}
-                      onChange={(e) => setDeadline(e.target.value)}
-                      className="w-full bg-zinc-100 dark:bg-zinc-800 border-none rounded-2xl pl-10 pr-4 py-4 font-bold focus:ring-2 focus:ring-brand-violet outline-none"
-                    />
-                  </div>
+                <div className="space-y-3">
+                    <div className="flex gap-2">
+                        {(['none', 'timeOfDay', 'exact'] as const).map((t) => (
+                            <button
+                                key={t}
+                                onClick={() => setTimeType(t)}
+                                className={cn(
+                                    "flex-1 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider border transition-all",
+                                    timeType === t ? "bg-brand-violet text-white border-brand-violet" : "bg-zinc-50 dark:bg-zinc-800 text-zinc-400 border-transparent"
+                                )}
+                            >
+                                {t === 'none' ? 'Весь день' : t === 'timeOfDay' ? 'Время суток' : 'Точное'}
+                            </button>
+                        ))}
+                    </div>
+
+                    {timeType === 'timeOfDay' && (
+                        <div className="grid grid-cols-4 gap-2">
+                            {(['morning', 'day', 'evening', 'night'] as const).map((tod) => {
+                                const icons = { morning: Sunrise, day: Sun, evening: Sunset, night: Moon };
+                                const labels = { morning: 'Утро', day: 'День', evening: 'Вечер', night: 'Ночь' };
+                                const Icon = icons[tod];
+                                return (
+                                    <button
+                                        key={tod}
+                                        onClick={() => setTimeOfDay(tod)}
+                                        className={cn(
+                                            "flex flex-col items-center gap-1 p-2 rounded-xl border transition-all",
+                                            timeOfDay === tod ? "bg-blue-500/10 border-blue-500 text-blue-500" : "bg-zinc-50 dark:bg-zinc-800 border-transparent text-zinc-400"
+                                        )}
+                                    >
+                                        <Icon className="w-4 h-4" />
+                                        <span className="text-[10px] font-bold">{labels[tod]}</span>
+                                    </button>
+                                )
+                            })}
+                        </div>
+                    )}
+
+                    {timeType === 'exact' && (
+                        <div className="relative">
+                            <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                            <input
+                                type="time"
+                                value={deadline}
+                                onChange={(e) => setDeadline(e.target.value)}
+                                className="w-full bg-zinc-100 dark:bg-zinc-800 border-none rounded-2xl pl-12 pr-4 py-4 font-bold focus:ring-2 focus:ring-brand-violet outline-none"
+                            />
+                        </div>
+                    )}
                 </div>
               )}
             </div>
