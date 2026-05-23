@@ -149,6 +149,45 @@ export interface WishlistItem {
   createdAt: Timestamp | Date | string;
 }
 
+export type TaskCategory = 'urgent-important' | 'important-not-urgent' | 'urgent-not-important' | 'not-urgent-not-important';
+
+export interface Task {
+  id: string;
+  title: string;
+  description?: string;
+  category: TaskCategory;
+  date: string | null; // ISO date string or null for "someday"
+  deadline?: string | null;
+  isCompleted: boolean;
+  isGeneral: boolean;
+  assigneeId: string | null; // null means unassigned or general
+  createdBy: string;
+  familyId: string;
+  createdAt: Timestamp | Date | string;
+  completedAt?: Timestamp | Date | string | null;
+}
+
+export interface FamilyEvent {
+  id: string;
+  title: string;
+  date: string; // ISO date string
+  type: 'birthday' | 'anniversary' | 'holiday' | 'other';
+  familyId: string;
+  createdBy: string;
+  createdAt: Timestamp | Date | string;
+}
+
+export interface Notification {
+  id: string;
+  title: string;
+  body: string;
+  type: 'task' | 'shopping' | 'finance' | 'system';
+  userId: string; // recipient
+  familyId: string;
+  isRead: boolean;
+  createdAt: Timestamp | Date | string;
+}
+
 // Default values as per requirements
 export const DEFAULT_USER_GOALS = {
   caloriesGoal: 2000,

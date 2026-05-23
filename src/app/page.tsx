@@ -1,7 +1,7 @@
 import { getUserWithFamily } from "@/lib/auth-server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ShoppingBag, Gift, TrendingUp, Heart, Star, Settings } from "lucide-react";
+import { ShoppingBag, Gift, TrendingUp, CheckSquare, Star, Bell } from "lucide-react";
 
 export default async function HomePage() {
   const { user } = await getUserWithFamily();
@@ -24,10 +24,10 @@ export default async function HomePage() {
       size: "col-span-2",
     },
     {
-      title: "Вишлисты",
-      subtitle: "Идеи подарков",
-      href: "/wishlist",
-      icon: Gift,
+      title: "Задачи",
+      subtitle: "Планировщик",
+      href: "/tasks",
+      icon: CheckSquare,
       color: "bg-brand-violet",
       size: "col-span-1",
     },
@@ -40,13 +40,12 @@ export default async function HomePage() {
       size: "col-span-1",
     },
     {
-      title: "Здоровье",
-      subtitle: "Скоро",
-      href: "#",
-      icon: Heart,
-      color: "bg-red-400",
+      title: "Вишлисты",
+      subtitle: "Идеи подарков",
+      href: "/wishlist",
+      icon: Gift,
+      color: "bg-brand-violet",
       size: "col-span-1",
-      disabled: true,
     },
     {
       title: "Привычки",
@@ -66,8 +65,8 @@ export default async function HomePage() {
           <p className="text-zinc-500 font-medium">Привет,</p>
           <h1 className="text-3xl font-black">{user.name} 👋</h1>
         </div>
-        <Link href="/settings" className="w-12 h-12 bg-white dark:bg-zinc-900 rounded-2xl flex items-center justify-center border border-zinc-100 dark:border-zinc-800 shadow-sm">
-          <Settings className="w-6 h-6 text-zinc-400" />
+        <Link href="/notifications" className="w-12 h-12 bg-white dark:bg-zinc-900 rounded-2xl flex items-center justify-center border border-zinc-100 dark:border-zinc-800 shadow-sm">
+          <Bell className="w-6 h-6 text-zinc-400" />
         </Link>
       </header>
 

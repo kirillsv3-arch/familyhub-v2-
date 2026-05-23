@@ -22,10 +22,28 @@ export async function POST() {
       return NextResponse.json({ error: "Partner has no FCM token" }, { status: 404 });
     }
 
+    const title = "Партнер в магазине";
+    const body = `${user.name} в магазине, дописывай, что нужно!`;
+
+    // Save to history
+    await adminDb
+      .collection("families")
+      .doc(user.familyId!)
+      .collection("notifications")
+      .add({
+        title,
+        body,
+        type: 'shopping',
+        userId: user.partnerId,
+        familyId: user.familyId,
+        isRead: false,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
     const message = {
       notification: {
-        title: "Партнер в магазине",
-        body: `${user.name} в магазине, дописывай, что нужно!`,
+        title,
+        body,
       },
       token: fcmToken,
     };
