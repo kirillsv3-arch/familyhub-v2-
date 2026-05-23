@@ -18,13 +18,24 @@ export async function POST(request: Request) {
 
     const tokens: string[] = [];
     for (const memberId of memberIds) {
+      // Save to history for each member
+      await adminDb
+        .collection("families")
+        .doc(user.familyId)
+        .collection("notifications")
+        .add({
+          title,
+          body,
+          type: 'finance',
+          userId: memberId,
+          familyId: user.familyId,
+          isRead: false,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+
       const memberDoc = await adminDb.collection("users").doc(memberId).get();
       const fcmToken = memberDoc.data()?.fcmToken;
       if (fcmToken) tokens.push(fcmToken);
-    }
-
-    if (tokens.length === 0) {
-      return NextResponse.json({ error: "No FCM tokens found" }, { status: 404 });
     }
 
     const messages = tokens.map(token => ({
