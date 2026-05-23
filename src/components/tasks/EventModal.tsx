@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { FamilyEvent } from '@/types';
-import { X, Calendar as CalendarIcon, Heart, Gift, Star, LucideIcon } from 'lucide-react';
+import { X, Calendar as CalendarIcon, Heart, Gift, Star, LucideIcon, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -30,6 +30,7 @@ const EVENT_TYPES: { id: FamilyEvent['type']; label: string; icon: LucideIcon; c
 export function EventModal({ isOpen, onClose, onSave, selectedDate }: EventModalProps) {
   const [title, setTitle] = useState('');
   const [type, setType] = useState<FamilyEvent['type']>('holiday');
+  const [isRecurring, setIsRecurring] = useState(false);
 
   if (!isOpen) return null;
 
@@ -38,9 +39,11 @@ export function EventModal({ isOpen, onClose, onSave, selectedDate }: EventModal
     onSave({
       title,
       type,
+      isRecurring,
       date: selectedDate.toISOString(),
     });
     setTitle('');
+    setIsRecurring(false);
     onClose();
   };
 
@@ -110,6 +113,22 @@ export function EventModal({ isOpen, onClose, onSave, selectedDate }: EventModal
                 })}
               </div>
             </div>
+
+            <button
+                onClick={() => setIsRecurring(!isRecurring)}
+                className={cn(
+                    "w-full flex items-center justify-between p-4 rounded-2xl border font-bold text-sm transition-all",
+                    isRecurring ? "bg-amber-500/10 border-amber-500/20 text-amber-600" : "bg-zinc-100 dark:bg-zinc-800 border-transparent text-zinc-500"
+                )}
+            >
+                <div className="flex items-center gap-2">
+                    <RefreshCw className={cn("w-4 h-4", isRecurring && "animate-spin-slow")} />
+                    Повторять каждый год
+                </div>
+                <div className={cn("w-10 h-6 rounded-full relative transition-colors", isRecurring ? "bg-amber-500" : "bg-zinc-300 dark:bg-zinc-600")}>
+                    <div className={cn("absolute top-1 w-4 h-4 bg-white rounded-full transition-all", isRecurring ? "left-5" : "left-1")} />
+                </div>
+            </button>
 
             <button
               onClick={handleSave}

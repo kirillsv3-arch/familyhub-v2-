@@ -12,6 +12,7 @@ import { ru } from 'date-fns/locale';
 import { AnimatePresence } from 'framer-motion';
 
 const TIME_ORDER = { morning: 1, day: 2, evening: 3, night: 4 };
+const CATEGORY_ORDER = { 'urgent-important': 1, 'important-not-urgent': 2, 'urgent-not-important': 3, 'not-urgent-not-important': 4 };
 
 export default function TasksPage() {
   const [selectedDate, setSelectedDate] = useState<Date>(startOfToday());
@@ -99,27 +100,41 @@ export default function TasksPage() {
   };
 
   const sortedDayTasks = useMemo(() => {
-    const dayTasks = showSomeday
+    const filtered = showSomeday
         ? tasks.filter(t => !t.date)
         : tasks.filter(t => t.date && isSameDay(parseISO(t.date), selectedDate));
 
-    return dayTasks.sort((a, b) => {
-        // 1. Exact time
+    return filtered.sort((a, b) => {
+        // 1. Priority (Eisenhower Category)
+        if (a.category !== b.category) {
+            return CATEGORY_ORDER[a.category] - CATEGORY_ORDER[b.category];
+        }
+
+        // 2. Exact time
         if (a.deadline && b.deadline) return a.deadline.localeCompare(b.deadline);
         if (a.deadline) return -1;
         if (b.deadline) return 1;
 
-        // 2. Time of day
+        // 3. Time of day
         if (a.timeOfDay && b.timeOfDay) return TIME_ORDER[a.timeOfDay] - TIME_ORDER[b.timeOfDay];
         if (a.timeOfDay) return -1;
         if (b.timeOfDay) return 1;
 
-        // 3. During the day (none)
         return 0;
     });
-  }, [tasks, selectedDate]);
+  }, [tasks, selectedDate, showSomeday]);
 
   const somedayTasksCount = tasks.filter(t => !t.date).length;
+
+  const dayEvents = useMemo(() => {
+    return events.filter(e => {
+        const eventDate = parseISO(e.date);
+        if (e.isRecurring) {
+            return eventDate.getDate() === selectedDate.getDate() && eventDate.getMonth() === selectedDate.getMonth();
+        }
+        return isSameDay(eventDate, selectedDate);
+    });
+  }, [events, selectedDate]);
 
   return (
     <main className="flex flex-col h-screen bg-zinc-50 dark:bg-black overflow-hidden">
@@ -147,6 +162,19 @@ export default function TasksPage() {
             </button>
         </header>
 
+        {dayEvents.length > 0 && !showSomeday && (
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                {dayEvents.map(event => (
+                    <div
+                        key={event.id}
+                        className="flex items-center gap-2 px-4 py-2 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full text-sm font-bold border border-amber-200 dark:border-amber-800 shrink-0"
+                    >
+                        <span>✨ {event.title}</span>
+                    </div>
+                ))}
+            </div>
+        )}
+
         {sortedDayTasks.length > 0 ? (
           <div className="space-y-4">
             <AnimatePresence mode="popLayout">
@@ -172,8 +200,8 @@ export default function TasksPage() {
                 <Info className="w-8 h-8 text-zinc-300" />
             </div>
             {somedayTasksCount > 0 && !showSomeday ? (
-                <div className="space-y-3">
-                    <p className="font-bold text-zinc-500 text-balance">На сегодня задач нет, но у вас есть неразбранные задачи в разделе &quot;Идеи&quot;</p>
+                <div className="space-y-3 px-4">
+                    <p className="font-bold text-zinc-500 text-balance leading-relaxed">На сегодня задач нет, но у вас есть неразбранные задачи в разделе &quot;Идеи&quot;</p>
                     <button
                         onClick={() => setShowSomeday(true)}
                         className="text-brand-violet font-bold flex items-center gap-1 mx-auto px-6 py-3 bg-brand-violet/10 rounded-2xl active:scale-95 transition-all"
@@ -182,7 +210,7 @@ export default function TasksPage() {
                     </button>
                 </div>
             ) : (
-                <p className="font-bold text-zinc-400">Задач нет. Добавьте новую задачу</p>
+                <p className="font-bold text-zinc-400">{showSomeday ? 'В разделе "Идеи" пока пусто' : 'Задач нет. Добавьте новую задачу'}</p>
             )}
           </div>
         )}

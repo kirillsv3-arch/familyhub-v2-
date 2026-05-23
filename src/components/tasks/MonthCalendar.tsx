@@ -20,7 +20,13 @@ export function MonthCalendar({ selectedDate, onDateChange, tasks, events, onAdd
     if (view !== 'month') return null;
 
     const hasTasks = tasks.some(t => t.date && isSameDay(parseISO(t.date), date));
-    const dayEvents = events.filter(e => isSameDay(parseISO(e.date), date));
+    const dayEvents = events.filter(e => {
+        const eventDate = parseISO(e.date);
+        if (e.isRecurring) {
+            return eventDate.getDate() === date.getDate() && eventDate.getMonth() === date.getMonth();
+        }
+        return isSameDay(eventDate, date);
+    });
 
     return (
       <div className="flex justify-center gap-0.5 mt-1">

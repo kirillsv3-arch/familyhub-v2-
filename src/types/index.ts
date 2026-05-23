@@ -175,6 +175,7 @@ export interface FamilyEvent {
   title: string;
   date: string; // ISO date string
   type: 'birthday' | 'anniversary' | 'holiday' | 'other';
+  isRecurring?: boolean; // Yearly
   familyId: string;
   createdBy: string;
   createdAt: Timestamp | Date | string;

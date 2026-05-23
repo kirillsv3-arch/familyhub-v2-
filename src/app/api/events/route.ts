@@ -68,6 +68,7 @@ export async function POST(request: Request) {
       title,
       date,
       type,
+      isRecurring: !!data.isRecurring,
       familyId: user.familyId,
       createdBy: user.uid,
       createdAt: FieldValue.serverTimestamp(),

@@ -11,6 +11,11 @@
     color: currentColor !important;
 }
 
+.react-calendar__navigation__prev2-button,
+.react-calendar__navigation__next2-button {
+    display: none !important;
+}
+
 .react-calendar__month-view__weekdays__weekday {
     font-weight: 600 !important;
     text-transform: uppercase !important;

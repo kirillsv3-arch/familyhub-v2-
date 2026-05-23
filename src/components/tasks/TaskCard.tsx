@@ -22,11 +22,11 @@ interface TaskCardProps {
   onDelete: (id: string) => void;
 }
 
-const CATEGORY_LABELS: Record<string, string> = {
-  'urgent-important': 'Срочно / Важно',
-  'important-not-urgent': 'Не срочно / Важно',
-  'urgent-not-important': 'Срочно / Не важно',
-  'not-urgent-not-important': 'Не срочно / Не важно',
+const CATEGORY_STYLES: Record<string, { label: string; color: string; bg: string }> = {
+  'urgent-important': { label: 'Срочно / Важно', color: 'text-red-500', bg: 'bg-red-500/10' },
+  'important-not-urgent': { label: 'Не срочно / Важно', color: 'text-orange-500', bg: 'bg-orange-500/10' },
+  'urgent-not-important': { label: 'Срочно / Не важно', color: 'text-blue-500', bg: 'bg-blue-500/10' },
+  'not-urgent-not-important': { label: 'Не срочно / Не важно', color: 'text-zinc-500', bg: 'bg-zinc-500/10' },
 };
 
 const TIME_OF_DAY_LABELS: Record<TimeOfDay, string> = {
@@ -39,6 +39,7 @@ const TIME_OF_DAY_LABELS: Record<TimeOfDay, string> = {
 export function TaskCard({ task, currentUserId, partnerName, onToggle, onEdit, onDelete }: TaskCardProps) {
   const [showMenu, setShowMenu] = useState(false);
   const isOwnTask = !task.isGeneral && task.assigneeId === currentUserId;
+  const style = CATEGORY_STYLES[task.category];
 
   const handleToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -93,19 +94,19 @@ export function TaskCard({ task, currentUserId, partnerName, onToggle, onEdit, o
           </h3>
 
           <div className="flex flex-wrap gap-2 mb-3">
-            <span className="text-[10px] font-bold text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-md uppercase tracking-wider">
-              {CATEGORY_LABELS[task.category]}
+            <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider", style.color, style.bg)}>
+              {style.label}
             </span>
 
             {task.deadline && (
-              <span className="text-[10px] font-bold text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded-md uppercase tracking-wider flex items-center gap-1">
+              <span className="text-[10px] font-bold text-zinc-500 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-md uppercase tracking-wider flex items-center gap-1">
                 <Clock className="w-3 h-3" />
                 {format(new Date(task.deadline), 'HH:mm')}
               </span>
             )}
 
             {task.timeOfDay && !task.deadline && (
-              <span className="text-[10px] font-bold text-blue-500 bg-blue-500/10 px-2 py-0.5 rounded-md uppercase tracking-wider flex items-center gap-1">
+              <span className="text-[10px] font-bold text-zinc-500 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-md uppercase tracking-wider flex items-center gap-1">
                 <Clock className="w-3 h-3" />
                 {TIME_OF_DAY_LABELS[task.timeOfDay]}
               </span>

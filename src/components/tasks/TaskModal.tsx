@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Task, TaskCategory, TimeOfDay } from '@/types';
-import { X, Clock, User, Users, Sun, Sunrise, Sunset, Moon } from 'lucide-react';
+import { X, Clock, User, Users, Sun, Sunrise, Sunset, Moon, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -59,7 +59,7 @@ export function TaskModal({ isOpen, onClose, onSave, initialTask, selectedDate, 
       }
 
       setIsGeneral(initialTask.isGeneral);
-      setAssigneeId(initialTask.assigneeId);
+      setAssigneeId(initialTask.assigneeId || 'me');
     } else {
       setTitle('');
       setDescription('');
@@ -69,7 +69,7 @@ export function TaskModal({ isOpen, onClose, onSave, initialTask, selectedDate, 
       setDeadline('');
       setTimeOfDay('morning');
       setIsGeneral(true);
-      setAssigneeId(null);
+      setAssigneeId('me');
     }
   }, [initialTask, isOpen]);
 
@@ -130,7 +130,7 @@ export function TaskModal({ isOpen, onClose, onSave, initialTask, selectedDate, 
             </button>
           </div>
 
-          <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2 scrollbar-hide">
+          <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2 scrollbar-hide pb-4">
             <div>
               <label className="text-xs font-bold text-zinc-400 uppercase tracking-widest ml-1 mb-2 block">Название</label>
               <input
@@ -140,17 +140,6 @@ export function TaskModal({ isOpen, onClose, onSave, initialTask, selectedDate, 
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Что нужно сделать?"
                 className="w-full bg-zinc-100 dark:bg-zinc-800 border-none rounded-2xl px-5 py-4 font-bold placeholder:text-zinc-400 focus:ring-2 focus:ring-brand-violet outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-bold text-zinc-400 uppercase tracking-widest ml-1 mb-2 block">Описание</label>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Добавьте детали..."
-                rows={2}
-                className="w-full bg-zinc-100 dark:bg-zinc-800 border-none rounded-2xl px-5 py-4 font-bold placeholder:text-zinc-400 focus:ring-2 focus:ring-brand-violet outline-none resize-none"
               />
             </div>
 
@@ -198,8 +187,7 @@ export function TaskModal({ isOpen, onClose, onSave, initialTask, selectedDate, 
                 </button>
               </div>
 
-              {!isSomeday && (
-                <div className="space-y-3">
+              <div className="space-y-3">
                     <div className="flex gap-2">
                         {(['none', 'timeOfDay', 'exact'] as const).map((t) => (
                             <button
@@ -249,18 +237,14 @@ export function TaskModal({ isOpen, onClose, onSave, initialTask, selectedDate, 
                             />
                         </div>
                     )}
-                </div>
-              )}
+              </div>
             </div>
 
             <div>
               <label className="text-xs font-bold text-zinc-400 uppercase tracking-widest ml-1 mb-2 block">Исполнитель</label>
               <div className="flex gap-2">
                 <button
-                  onClick={() => {
-                    setIsGeneral(true);
-                    setAssigneeId(null);
-                  }}
+                  onClick={() => setIsGeneral(true)}
                   className={cn(
                     "flex-1 flex items-center justify-center gap-2 p-4 rounded-2xl border font-bold text-sm transition-all",
                     isGeneral ? "bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 border-zinc-900 dark:border-white shadow-lg" : "bg-zinc-100 dark:bg-zinc-800 border-transparent text-zinc-500"
@@ -270,10 +254,7 @@ export function TaskModal({ isOpen, onClose, onSave, initialTask, selectedDate, 
                   Общая
                 </button>
                 <button
-                  onClick={() => {
-                    setIsGeneral(false);
-                    setAssigneeId(initialTask?.assigneeId || 'me');
-                  }}
+                  onClick={() => setIsGeneral(false)}
                   className={cn(
                     "flex-1 flex items-center justify-center gap-2 p-4 rounded-2xl border font-bold text-sm transition-all",
                     !isGeneral ? "bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 border-zinc-900 dark:border-white shadow-lg" : "bg-zinc-100 dark:bg-zinc-800 border-transparent text-zinc-500"
@@ -284,18 +265,41 @@ export function TaskModal({ isOpen, onClose, onSave, initialTask, selectedDate, 
                 </button>
               </div>
 
-              {!isGeneral && partnerName && (
-                <div className="mt-3 p-2 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl flex items-center gap-4">
-                  <span className="text-xs font-bold text-zinc-400 ml-2">Назначить:</span>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={assigneeId === partnerId}
-                      onChange={(e) => setAssigneeId(e.target.checked ? (partnerId || null) : 'me')}
-                      className="w-5 h-5 rounded-lg border-zinc-300 text-brand-violet focus:ring-brand-violet"
-                    />
-                    <span className="text-sm font-bold">{partnerName}</span>
-                  </label>
+              {!isGeneral && (
+                <div className="mt-3 p-1 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl flex flex-col gap-1">
+                  <button
+                    onClick={() => setAssigneeId('me')}
+                    className={cn(
+                        "flex items-center justify-between px-4 py-3 rounded-xl transition-all",
+                        assigneeId === 'me' ? "bg-white dark:bg-zinc-700 shadow-sm" : "opacity-60"
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-brand-violet/10 flex items-center justify-center text-brand-violet">
+                            <User className="w-4 h-4" />
+                        </div>
+                        <span className="text-sm font-bold">Я</span>
+                    </div>
+                    {assigneeId === 'me' && <Check className="w-4 h-4 text-brand-violet" />}
+                  </button>
+
+                  {partnerName && (
+                    <button
+                        onClick={() => setAssigneeId(partnerId || null)}
+                        className={cn(
+                            "flex items-center justify-between px-4 py-3 rounded-xl transition-all",
+                            assigneeId === partnerId ? "bg-white dark:bg-zinc-700 shadow-sm" : "opacity-60"
+                        )}
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500">
+                                <User className="w-4 h-4" />
+                            </div>
+                            <span className="text-sm font-bold">{partnerName}</span>
+                        </div>
+                        {assigneeId === partnerId && <Check className="w-4 h-4 text-blue-500" />}
+                    </button>
+                  )}
                 </div>
               )}
             </div>
