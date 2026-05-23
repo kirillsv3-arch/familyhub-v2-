@@ -20,6 +20,7 @@ interface TaskCardProps {
   onToggle: (id: string, isCompleted: boolean) => void;
   onEdit: (task: Task) => void;
   onDelete: (id: string) => void;
+  isIdeaView?: boolean;
 }
 
 const CATEGORY_STYLES: Record<string, { label: string; color: string; bg: string }> = {
@@ -36,7 +37,7 @@ const TIME_OF_DAY_LABELS: Record<TimeOfDay, string> = {
   night: 'Ночь',
 };
 
-export function TaskCard({ task, currentUserId, partnerName, onToggle, onEdit, onDelete }: TaskCardProps) {
+export function TaskCard({ task, currentUserId, partnerName, onToggle, onEdit, onDelete, isIdeaView }: TaskCardProps) {
   const [showMenu, setShowMenu] = useState(false);
   const isOwnTask = !task.isGeneral && task.assigneeId === currentUserId;
   const style = CATEGORY_STYLES[task.category];
@@ -98,41 +99,47 @@ export function TaskCard({ task, currentUserId, partnerName, onToggle, onEdit, o
               {style.label}
             </span>
 
-            {task.deadline && (
-              <span className="text-[10px] font-bold text-zinc-500 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-md uppercase tracking-wider flex items-center gap-1">
-                <Clock className="w-3 h-3" />
-                {format(new Date(task.deadline), 'HH:mm')}
-              </span>
-            )}
+            {!isIdeaView && (
+                <>
+                    {task.deadline && (
+                    <span className="text-[10px] font-bold text-zinc-500 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-md uppercase tracking-wider flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {format(new Date(task.deadline), 'HH:mm')}
+                    </span>
+                    )}
 
-            {task.timeOfDay && !task.deadline && (
-              <span className="text-[10px] font-bold text-zinc-500 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-md uppercase tracking-wider flex items-center gap-1">
-                <Clock className="w-3 h-3" />
-                {TIME_OF_DAY_LABELS[task.timeOfDay]}
-              </span>
-            )}
+                    {task.timeOfDay && !task.deadline && (
+                    <span className="text-[10px] font-bold text-zinc-500 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-md uppercase tracking-wider flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {TIME_OF_DAY_LABELS[task.timeOfDay]}
+                    </span>
+                    )}
 
-            {!task.deadline && !task.timeOfDay && (
-              <span className="text-[10px] font-bold text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-md uppercase tracking-wider">
-                В течение дня
-              </span>
+                    {!task.deadline && !task.timeOfDay && (
+                    <span className="text-[10px] font-bold text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-md uppercase tracking-wider">
+                        В течение дня
+                    </span>
+                    )}
+                </>
             )}
           </div>
 
-          <div className="flex items-center gap-2 text-xs font-medium text-zinc-500">
-            <span className="opacity-60 text-[10px] uppercase font-bold tracking-widest">Исполнитель:</span>
-            {task.isGeneral ? (
-              <div className="flex items-center gap-1">
-                <Users className="w-3 h-3" />
-                <span>Общая</span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-1">
-                <User className="w-3 h-3" />
-                <span>{task.assigneeId === currentUserId ? 'Я' : partnerName || 'Партнер'}</span>
-              </div>
-            )}
-          </div>
+          {!isIdeaView && (
+            <div className="flex items-center gap-2 text-xs font-medium text-zinc-500">
+                <span className="opacity-60 text-[10px] uppercase font-bold tracking-widest">Исполнитель:</span>
+                {task.isGeneral ? (
+                <div className="flex items-center gap-1">
+                    <Users className="w-3 h-3" />
+                    <span>Общая</span>
+                </div>
+                ) : (
+                <div className="flex items-center gap-1">
+                    <User className="w-3 h-3" />
+                    <span>{task.assigneeId === currentUserId ? 'Я' : partnerName || 'Партнер'}</span>
+                </div>
+                )}
+            </div>
+          )}
         </div>
 
         <button

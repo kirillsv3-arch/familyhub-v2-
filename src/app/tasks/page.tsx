@@ -155,7 +155,10 @@ export default function TasksPage() {
                 )}
             </div>
             <button
-                onClick={() => setIsTaskModalOpen(true)}
+                onClick={() => {
+                    setEditingTask(null);
+                    setIsTaskModalOpen(true);
+                }}
                 className="w-10 h-10 bg-brand-violet text-white rounded-xl flex items-center justify-center shadow-lg shadow-brand-violet/20"
             >
                 <Plus className="w-6 h-6" />
@@ -190,6 +193,7 @@ export default function TasksPage() {
                     setIsTaskModalOpen(true);
                   }}
                   onDelete={handleDeleteTask}
+                  isIdeaView={showSomeday}
                 />
               ))}
             </AnimatePresence>
