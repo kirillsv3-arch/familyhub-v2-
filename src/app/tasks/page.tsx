@@ -47,10 +47,14 @@ export default function TasksPage() {
   };
 
   const fetchUser = async () => {
-    const res = await fetch('/api/user/me');
-    const data = await res.json();
-    setUser(data.user);
-    if (data.partner) setPartner(data.partner);
+    try {
+        const res = await fetch('/api/user/me');
+        const data = await res.json();
+        if (data.user) setUser(data.user);
+        if (data.partner) setPartner(data.partner);
+    } catch (err) {
+        console.error("Failed to fetch user/partner:", err);
+    }
   };
 
   const handleToggleTask = async (id: string, isCompleted: boolean) => {
